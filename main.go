@@ -7,13 +7,14 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/logrusorgru/aurora"
 )
 
 func showHelp() {
 	fmt.Println(`Usage:
     set [baseRef]
-    set [branch] [baseRef]
-`)
+    set [branch] [baseRef]`)
 	os.Exit(0)
 }
 
@@ -48,8 +49,12 @@ func currentBranch() string {
 	return runGitCommand("rev-parse", "--abbrev-ref", "HEAD")
 }
 
-func bopgitRefName(branch string) string {
-	return fmt.Sprintf("refs/bopgit/%s", branch)
+func bopgitSymBaseRefName(branch string) string {
+	return fmt.Sprintf("refs/bopgit/sym-base/%s", branch)
+}
+
+func bopgitCurrentBaseRefName(branch string) string {
+	return fmt.Sprintf("refs/bopgit/current-base/%s", branch)
 }
 
 func setCmd() {
@@ -63,8 +68,13 @@ func setCmd() {
 }
 
 func set(branch string, baseRef string) {
-	fmt.Printf("Setting the base branch for %s to %s", branch, baseRef)
+	fmt.Printf("Setting the base branch for %s to %s\n",
+		aurora.Bold(branch),
+		aurora.Bold(baseRef),
+	)
 
-	fmt.Println("update-ref", bopgitRefName(currentBranch()), baseRef)
+	runGitCommand("symbolic-ref", "-m", "bopgit set", bopgitSymBaseRefName(branch), baseRef)
+	runGitCommand("update-ref", bopgitCurrentBaseRefName(branch), baseRef)
+	// git symbolic-ref [-m <reason>] <name> <ref>
 	// fmt.Println(currentBranch(), baseRef)
 }
