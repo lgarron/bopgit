@@ -114,6 +114,13 @@ func update(branch Branch) {
 	newLatestBaseCommit := baseBranch.Commit()
 	oldLatestBaseCommit := getLatestBaseCommit(branch)
 
+	if newLatestBaseCommit.Equals(oldLatestBaseCommit) {
+		fmt.Printf("Base commit %s is up to date.\n",
+			aurora.Bold(oldLatestBaseCommit),
+		)
+		os.Exit(0)
+	}
+
 	fmt.Printf("Old base commit: %s\n",
 		aurora.Bold(oldLatestBaseCommit),
 	)
@@ -121,11 +128,6 @@ func update(branch Branch) {
 	fmt.Printf("New base commit: %s\n",
 		aurora.Bold(newLatestBaseCommit),
 	)
-
-	if newLatestBaseCommit.Equals(oldLatestBaseCommit) {
-		fmt.Println("No update necessary.")
-		os.Exit(0)
-	}
 
 	// TODO: Set backup ref.
 	rebaseOnto(newLatestBaseCommit, oldLatestBaseCommit, branch)
