@@ -215,7 +215,7 @@ func info(branch Branch) {
 	fmt.Println()
 
 	// TODO: avoid assuming a linear history?
-	fmt.Printf("%d commits to %s since the its base commit.\n",
+	fmt.Printf("%d commits to %s since its base commit.\n",
 		numCommitsAhead(branch, latestBaseCommit),
 		aurora.Bold(branch),
 	)
