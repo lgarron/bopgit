@@ -41,9 +41,9 @@ func getBranchInfo(branch Branch) branchInfo {
 			fmt.Sprintf("%s@{upstream}", branch.Name),
 		)
 		if err == nil {
-			suffix = fmt.Sprintf(" | upstream: %s/%s",
-				aurora.Sprintf(aurora.Red("+%s"), maybeNumCommitsAheadStr(branch, upstream)),
-				aurora.Sprintf(aurora.Green("-%s"), maybeNumCommitsAheadStr(upstream, branch)),
+			suffix = fmt.Sprintf(" | local: %s/%s",
+				aurora.Sprintf(aurora.Red("+%s"), maybeNumCommitsAheadStr(upstream, branch)),
+				aurora.Sprintf(aurora.Green("-%s"), maybeNumCommitsAheadStr(branch, upstream)),
 			)
 		}
 	}
