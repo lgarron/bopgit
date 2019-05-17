@@ -53,10 +53,6 @@ func NewArbitraryRef(refID string) ArbitraryRef {
 	}
 }
 
-func (r ArbitraryRef) Commit() Commit {
-	return NewCommit(hash(r.refID))
-}
-
 func (r ArbitraryRef) ID() string {
 	return r.refID
 }
