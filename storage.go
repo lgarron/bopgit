@@ -19,11 +19,7 @@ func setLatestBaseCommit(branch Branch, commit Commit, reason string) {
 }
 
 func mabyeGetSymBase(branch Branch) (Branch, error) {
-	value, err := maybeGetGitValue(execOptions{}, "symbolic-ref", symBaseRefName(branch))
-	if err != nil {
-		return Branch{}, err
-	}
-	return NewBranch(value), nil
+	return mabyeGetBranch(execOptions{}, "symbolic-ref", symBaseRefName(branch))
 }
 
 func getSymBase(branch Branch) Branch {

@@ -34,12 +34,11 @@ func ensureInTree(t treeprint.Tree, nodeMemo map[string]treeprint.Tree, branch B
 
 	suffix := ""
 	if showUpstreamDistances {
-		upstreamName, err := maybeGetGitValue(execOptions{},
+		upstream, err := mabyeGetBranch(execOptions{},
 			"rev-parse", "--abbrev-ref",
 			fmt.Sprintf("%s@{upstream}", branch.Name),
 		)
 		if err == nil {
-			upstream := NewBranch(upstreamName)
 			suffix = fmt.Sprintf(" | upstream: %s/%s",
 				aurora.Sprintf(aurora.Red("+%s"), maybeNumCommitsAheadStr(branch, upstream)),
 				aurora.Sprintf(aurora.Green("-%s"), maybeNumCommitsAheadStr(upstream, branch)),

@@ -58,6 +58,14 @@ func maybeGetGitValue(options execOptions, args ...string) (string, error) {
 	return strings.TrimSuffix(outb.String(), "\n"), nil
 }
 
+func mabyeGetBranch(options execOptions, args ...string) (Branch, error) {
+	value, err := maybeGetGitValue(options, args...)
+	if err != nil {
+		return Branch{}, err
+	}
+	return NewBranch(value), nil
+}
+
 func getGitValue(args ...string) string {
 	output, err := maybeGetGitValue(execOptions{}, args...)
 	if err != nil {
