@@ -77,7 +77,7 @@ func doesBranchNameExist(branchName string) bool {
 
 func branchNameMustExist(branchName string) {
 	if !doesBranchNameExist(branchName) {
-		fmt.Printf("Branch does not exist: %s",
+		fmt.Printf("Branch does not exist: %s\n",
 			aurora.Bold(branchName),
 		)
 		showHelp()

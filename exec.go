@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -30,7 +29,8 @@ func gitExecCommand(args ...string) *exec.Cmd {
 func getGitValue(args ...string) string {
 	output, err := gitExecCommand(args...).Output()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 	return strings.TrimSuffix(string(output), "\n")
 }
@@ -46,7 +46,8 @@ func isGitCommandExitCodeZero(args ...string) bool {
 	cmd := gitExecCommand(args...)
 	err := cmd.Start()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Fprintf(os.Stderr, "Unexpected error while checking exit code of a git command: %s\n", err)
+		os.Exit(1)
 	}
 	err = cmd.Wait()
 	if err != nil {

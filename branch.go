@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 
@@ -39,7 +38,8 @@ func numCommitsAhead(branch Ref, comparison Ref) int {
 	))
 	i, err := strconv.Atoi(s)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 	return i
 }

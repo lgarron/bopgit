@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/logrusorgru/aurora"
@@ -197,7 +196,7 @@ func info(branch Branch) {
 	)
 
 	if !doesBranchContain(branch, latestBaseCommit) {
-		log.Fatal("The branch doesn't contain that `bopgit` believes to be its latest base commit!")
+		fmt.Fprintf(os.Stderr, "The branch doesn't contain that `bopgit` believes to be its latest base commit!")
 		os.Exit(1)
 	}
 
