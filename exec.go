@@ -6,6 +6,8 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/logrusorgru/aurora"
 )
 
 func Log(args ...interface{}) {
@@ -20,7 +22,7 @@ func Log(args ...interface{}) {
 
 func gitExecCommand(args ...string) *exec.Cmd {
 	if debug {
-		fmt.Printf("git command: %v\n", args)
+		fmt.Printf(aurora.Sprintf(aurora.Yellow("⚙️  git command: %v\n"), args))
 	}
 	return exec.Command("git", args...)
 }
