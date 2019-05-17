@@ -180,7 +180,7 @@ func infoCmd() {
 		branch = currentBranch()
 	}
 
-	fmt.Printf("Info for branch %s\n",
+	fmt.Printf("ℹ️  Info for branch %s\n",
 		aurora.Bold(branch),
 	)
 
