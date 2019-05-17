@@ -112,6 +112,19 @@ func update(branch gitBranch) {
 	baseBranch := getSymBase(branch)
 	newLatestBaseCommit := hash(baseBranch.name)
 	oldLatestBaseCommit := getLatestBaseCommit(branch)
+
+	fmt.Printf("Updating branch: %s\n",
+		aurora.Bold(branch),
+	)
+
+	fmt.Printf("Old base commit: %s\n",
+		aurora.Bold(oldLatestBaseCommit),
+	)
+
+	fmt.Printf("New base commit: %s\n",
+		aurora.Bold(newLatestBaseCommit),
+	)
+
 	// TODO: Set backup ref.
 	rebaseOnto(newLatestBaseCommit, oldLatestBaseCommit, branch)
 	setLatestBaseCommit(branch, newLatestBaseCommit, "bopgit update")
