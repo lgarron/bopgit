@@ -114,10 +114,6 @@ func update(branch Branch) {
 	newLatestBaseCommit := baseBranch.Commit()
 	oldLatestBaseCommit := getLatestBaseCommit(branch)
 
-	fmt.Printf("Updating branch: %s\n",
-		aurora.Bold(branch),
-	)
-
 	fmt.Printf("Old base commit: %s\n",
 		aurora.Bold(oldLatestBaseCommit),
 	)
