@@ -17,22 +17,20 @@ func showHelp() {
   set [optional arguments] base latest-base-commit branch
   update [optional arguments]
   update [optional arguments] branch
+  info [optional arguments]
   info [optional arguments] branch
 
   Optional arguments:
     --debug`)
 }
 
-func mustHaveMinNArgs(n int) {
-	if flag.NArg() < n {
-		showHelp()
-	}
-}
-
 func main() {
 	debugPtr := flag.Bool("debug", false, "debug")
 	flag.Parse()
-	mustHaveMinNArgs(1)
+	if flag.NArg() < 1 {
+		showHelp()
+		os.Exit(0)
+	}
 
 	debug = *debugPtr
 
@@ -51,9 +49,10 @@ func main() {
 func setCmd() {
 	if flag.NArg() < 2 || flag.NArg() > 4 {
 		showHelp()
+		os.Exit(1)
 	}
 
-	baseBranch := currentBranch()
+	baseBranch := flag.Arg(1)
 	branchMustExist(baseBranch)
 
 	var branch gitBranch
@@ -92,14 +91,14 @@ func set(baseBranch gitBranch, latestBaseCommit string, branch gitBranch) {
 }
 
 func updateCmd() {
-	if flag.NArg() < 2 || flag.NArg() > 3 {
+	if flag.NArg() < 1 || flag.NArg() > 2 {
 		showHelp()
 		os.Exit(1)
 	}
 
 	var branch gitBranch
-	if flag.NArg() > 2 {
-		branch = flag.Arg(2)
+	if flag.NArg() > 1 {
+		branch = flag.Arg(1)
 	} else {
 		branch = currentBranch()
 	}
@@ -116,19 +115,20 @@ func update(branch gitBranch) {
 	baseBranch := getSymBase(branch)
 	newLatestBaseCommit := hash(baseBranch)
 	oldLatestBaseCommit := getLatestBaseCommit(branch)
+	// TODO: Set backup ref.
 	rebaseOnto(newLatestBaseCommit, oldLatestBaseCommit, branch)
 	setLatestBaseCommit(branch, newLatestBaseCommit, "bopgit update")
 }
 
 func infoCmd() {
-	if flag.NArg() < 2 || flag.NArg() > 3 {
+	if flag.NArg() < 1 || flag.NArg() > 2 {
 		showHelp()
 		os.Exit(1)
 	}
 
 	var branch gitBranch
-	if flag.NArg() > 2 {
-		branch = flag.Arg(2)
+	if flag.NArg() > 1 {
+		branch = flag.Arg(1)
 	} else {
 		branch = currentBranch()
 	}
@@ -142,6 +142,8 @@ func infoCmd() {
 }
 
 func info(branch gitBranch) {
+	// TODO: Calculate if branch is tracked by `bopgit`.
+
 	fmt.Printf("Base branch: %s\n",
 		aurora.Bold(getSymBase(branch)),
 	)
