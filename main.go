@@ -183,9 +183,12 @@ func infoCmd() {
 }
 
 func info(branch Branch) {
-	// TODO: Calculate if branch is tracked by `bopgit`.
-
-	baseBranch := getSymBase(branch)
+	fmt.Println()
+	baseBranch, err := mabyeGetSymBase(branch)
+	if err != nil {
+		fmt.Println("bopgit is not tracking this branch.")
+		os.Exit(0)
+	}
 	fmt.Printf("Base branch: %s\n",
 		aurora.Bold(baseBranch),
 	)

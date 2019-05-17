@@ -26,13 +26,21 @@ func gitExecCommand(args ...string) *exec.Cmd {
 	return exec.Command("git", args...)
 }
 
-func getGitValue(args ...string) string {
+func maybeGetGitValue(args ...string) (string, error) {
 	output, err := gitExecCommand(args...).Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSuffix(string(output), "\n"), nil
+}
+
+func getGitValue(args ...string) string {
+	output, err := maybeGetGitValue(args...)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-	return strings.TrimSuffix(string(output), "\n")
+	return output
 }
 
 func runGitCommand(args ...string) {
