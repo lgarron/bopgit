@@ -269,12 +269,21 @@ func ensureInTree(t treeprint.Tree, nodeMemo map[string]treeprint.Tree, branch B
 	parentNode := ensureInTree(t, nodeMemo, baseBranch)
 
 	var newNode treeprint.Tree
+	commitPluralized := "commits"
+	commitsOnBranchStr := maybeNumCommitsAheadStr(branch, getLatestBaseCommit(branch))
+	if commitsOnBranchStr == "1" {
+		commitPluralized = "commit"
+	}
 	if showDistancesInTree {
-		metaText := fmt.Sprintf("-%s, +%s",
-			maybeNumCommitsAheadStr(baseBranch, branch),
-			maybeNumCommitsAheadStr(branch, baseBranch),
+		metaText := fmt.Sprintf("%s [%s / %s] (%s %s)",
+			aurora.Bold(branch.Name),
+			aurora.Sprintf(aurora.Red("-%s"), maybeNumCommitsAheadStr(baseBranch, branch)),
+			aurora.Sprintf(aurora.Green("+%s"), maybeNumCommitsAheadStr(branch, baseBranch)),
+			commitsOnBranchStr,
+			commitPluralized,
 		)
-		newNode = parentNode.AddMetaBranch(metaText, branch.Name)
+		// newNode = parentNode.AddMetaBranch(metaText, )
+		newNode = parentNode.AddBranch(metaText)
 	} else {
 		newNode = parentNode.AddBranch(branch.Name)
 	}
