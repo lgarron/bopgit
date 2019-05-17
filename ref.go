@@ -1,27 +1,85 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
 
-func symBaseRefName(branch Branch) string {
-	return fmt.Sprintf("refs/bopgit/sym-base/%s", branch.name)
+	"github.com/logrusorgru/aurora"
+)
+
+func hash(ref string) string {
+	return runGitCommand("show-ref", "--heads", "-s", ref)
 }
 
-func latestBaseCommitRefName(branch Branch) string {
-	return fmt.Sprintf("refs/bopgit/latest-base-commit/%s", branch.name)
+/******** Commit *********/
+
+type Commit struct {
+	Hash string
 }
 
-func setSymBase(branch Branch, baseBranch Branch, reason string) {
-	runGitCommand("symbolic-ref", "-m", reason, symBaseRefName(branch), baseBranch.name)
+func (c Commit) String() string {
+	return fmt.Sprintf("⌥ %s", c.Hash)
 }
 
-func setLatestBaseCommit(branch Branch, commit string, reason string) {
-	runGitCommand("update-ref", "-m", reason, latestBaseCommitRefName(branch), commit)
+func NewCommit(hashStr string) Commit {
+	// TODO: Check for existence of commit.
+	return Commit{
+		Hash: hashStr,
+	}
 }
 
-func getSymBase(branch Branch) Branch {
-	return newBranch(runGitCommand("symbolic-ref", symBaseRefName(branch)))
+/******** Ref *********/
+
+type Ref struct {
+	ID string
 }
 
-func getLatestBaseCommit(branch Branch) string {
-	return runGitCommand("rev-parse", latestBaseCommitRefName(branch))
+func (r Ref) String() string {
+	return fmt.Sprintf("⇢ %s", r.ID)
+}
+
+func NewRef(refID string) Ref {
+	// TODO: Check for existence of Ref.
+	return Ref{
+		ID: refID,
+	}
+}
+
+func (r Ref) Commit() Commit {
+	return NewCommit(hash(r.ID))
+}
+
+/******** Branch *********/
+
+type Branch struct {
+	Name string
+}
+
+func (b Branch) String() string {
+	return fmt.Sprintf("⌥ %s", b.Name)
+}
+
+func doesBranchNameExist(branchName string) bool {
+	return isGitCommandExitCodeZero("rev-parse", "--verify", branchName)
+}
+
+func branchNameMustExist(branchName string) {
+	if !doesBranchNameExist(branchName) {
+		fmt.Printf("Branch does not exist: %s",
+			aurora.Bold(branchName),
+		)
+		showHelp()
+		os.Exit(1)
+	}
+}
+
+func NewBranch(branchName string) Branch {
+	branchNameMustExist(branchName)
+	return Branch{
+		Name: branchName,
+	}
+}
+
+func (b Branch) Commit() Commit {
+	return NewCommit(hash(b.Name))
 }

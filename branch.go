@@ -9,45 +9,12 @@ import (
 	"github.com/logrusorgru/aurora"
 )
 
-type Branch struct {
-	name string
-}
-
-func (b Branch) String() string {
-	return fmt.Sprintf("⌥ %s", b.name)
-}
-
-func doesBranchNameExist(branchName string) bool {
-	return isGitCommandExitCodeZero("rev-parse", "--verify", branchName)
-}
-
-func branchNameMustExist(branch string) {
-	if !doesBranchNameExist(branch) {
-		fmt.Printf("Branch does not exist: %s",
-			aurora.Bold(branch),
-		)
-		showHelp()
-		os.Exit(1)
-	}
-}
-
-func newBranch(branchName string) Branch {
-	branchNameMustExist(branchName)
-	return Branch{
-		name: branchName,
-	}
-}
-
-func hash(ref string) string {
-	return runGitCommand("show-ref", "--heads", "-s", ref)
-}
-
 func currentBranch() Branch {
-	return newBranch(runGitCommand("rev-parse", "--abbrev-ref", "HEAD"))
+	return NewBranch(runGitCommand("rev-parse", "--abbrev-ref", "HEAD"))
 }
 
 func doesBranchContain(branch Branch, ref string) bool {
-	return isGitCommandExitCodeZero("merge-base", "--is-ancestor", ref, branch.name)
+	return isGitCommandExitCodeZero("merge-base", "--is-ancestor", ref, branch.Name)
 }
 
 func branchMustContain(branch Branch, ref string) {
@@ -62,7 +29,7 @@ func branchMustContain(branch Branch, ref string) {
 }
 
 func rebaseOnto(newbase string, upstream string, root Branch) {
-	runGitCommand("rebase", "--onto", newbase, upstream, root.name)
+	runGitCommand("rebase", "--onto", newbase, upstream, root.Name)
 }
 
 func numCommitsAhead(branch string, comparison string) int {
