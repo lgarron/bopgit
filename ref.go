@@ -36,6 +36,10 @@ func (c Commit) ID() string {
 	return c.Hash
 }
 
+func (c Commit) Equals(c2 Commit) bool {
+	return c.Hash == c2.Hash
+}
+
 /******** ArbitraryRef *********/
 
 type ArbitraryRef struct {

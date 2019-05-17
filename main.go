@@ -126,6 +126,11 @@ func update(branch Branch) {
 		aurora.Bold(newLatestBaseCommit),
 	)
 
+	if newLatestBaseCommit.Equals(oldLatestBaseCommit) {
+		fmt.Println("No update necessary.")
+		os.Exit(0)
+	}
+
 	// TODO: Set backup ref.
 	rebaseOnto(newLatestBaseCommit, oldLatestBaseCommit, branch)
 	setLatestBaseCommit(branch, newLatestBaseCommit, "bopgit update")
