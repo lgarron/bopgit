@@ -53,11 +53,11 @@ func setCmd() {
 		os.Exit(1)
 	}
 
-	baseBranch := newGitBranch(flag.Arg(1))
+	baseBranch := newBranch(flag.Arg(1))
 
-	var branch gitBranch
+	var branch Branch
 	if flag.NArg() > 3 {
-		branch = newGitBranch(flag.Arg(3))
+		branch = newBranch(flag.Arg(3))
 	} else {
 		branch = currentBranch()
 	}
@@ -84,7 +84,7 @@ func setCmd() {
 	set(baseBranch, latestBaseCommit, branch)
 }
 
-func set(baseBranch gitBranch, latestBaseCommit string, branch gitBranch) {
+func set(baseBranch Branch, latestBaseCommit string, branch Branch) {
 	setSymBase(branch, baseBranch, "bopgit set")
 	setLatestBaseCommit(branch, latestBaseCommit, "bopgit set")
 }
@@ -95,9 +95,9 @@ func updateCmd() {
 		os.Exit(1)
 	}
 
-	var branch gitBranch
+	var branch Branch
 	if flag.NArg() > 1 {
-		branch = newGitBranch(flag.Arg(1))
+		branch = newBranch(flag.Arg(1))
 	} else {
 		branch = currentBranch()
 	}
@@ -109,7 +109,7 @@ func updateCmd() {
 	update(branch)
 }
 
-func update(branch gitBranch) {
+func update(branch Branch) {
 	baseBranch := getSymBase(branch)
 	newLatestBaseCommit := hash(baseBranch.name)
 	oldLatestBaseCommit := getLatestBaseCommit(branch)
@@ -137,9 +137,9 @@ func infoCmd() {
 		os.Exit(1)
 	}
 
-	var branch gitBranch
+	var branch Branch
 	if flag.NArg() > 1 {
-		branch = newGitBranch(flag.Arg(1))
+		branch = newBranch(flag.Arg(1))
 	} else {
 		branch = currentBranch()
 	}
@@ -151,7 +151,7 @@ func infoCmd() {
 	info(branch)
 }
 
-func info(branch gitBranch) {
+func info(branch Branch) {
 	// TODO: Calculate if branch is tracked by `bopgit`.
 
 	baseBranch := getSymBase(branch)

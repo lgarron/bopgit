@@ -9,11 +9,11 @@ import (
 	"github.com/logrusorgru/aurora"
 )
 
-type gitBranch struct {
+type Branch struct {
 	name string
 }
 
-func (b gitBranch) String() string {
+func (b Branch) String() string {
 	return fmt.Sprintf("⌥ %s", b.name)
 }
 
@@ -31,9 +31,9 @@ func branchNameMustExist(branch string) {
 	}
 }
 
-func newGitBranch(branchName string) gitBranch {
+func newBranch(branchName string) Branch {
 	branchNameMustExist(branchName)
-	return gitBranch{
+	return Branch{
 		name: branchName,
 	}
 }
@@ -42,15 +42,15 @@ func hash(ref string) string {
 	return runGitCommand("show-ref", "--heads", "-s", ref)
 }
 
-func currentBranch() gitBranch {
-	return newGitBranch(runGitCommand("rev-parse", "--abbrev-ref", "HEAD"))
+func currentBranch() Branch {
+	return newBranch(runGitCommand("rev-parse", "--abbrev-ref", "HEAD"))
 }
 
-func doesBranchContain(branch gitBranch, ref string) bool {
+func doesBranchContain(branch Branch, ref string) bool {
 	return isGitCommandExitCodeZero("merge-base", "--is-ancestor", ref, branch.name)
 }
 
-func branchMustContain(branch gitBranch, ref string) {
+func branchMustContain(branch Branch, ref string) {
 	if !doesBranchContain(branch, ref) {
 		fmt.Errorf("Branch %s does not contain expected ref: %s",
 			aurora.Bold(branch),
@@ -61,7 +61,7 @@ func branchMustContain(branch gitBranch, ref string) {
 	}
 }
 
-func rebaseOnto(newbase string, upstream string, root gitBranch) {
+func rebaseOnto(newbase string, upstream string, root Branch) {
 	runGitCommand("rebase", "--onto", newbase, upstream, root.name)
 }
 
