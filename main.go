@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 
 	"github.com/logrusorgru/aurora"
 )
@@ -93,6 +94,7 @@ func set(baseBranch gitBranch, latestBaseCommit string, branch gitBranch) {
 func updateCmd() {
 	if flag.NArg() < 2 || flag.NArg() > 3 {
 		showHelp()
+		os.Exit(1)
 	}
 
 	var branch gitBranch
@@ -121,6 +123,7 @@ func update(branch gitBranch) {
 func infoCmd() {
 	if flag.NArg() < 2 || flag.NArg() > 3 {
 		showHelp()
+		os.Exit(1)
 	}
 
 	var branch gitBranch
