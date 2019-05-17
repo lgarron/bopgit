@@ -64,8 +64,9 @@ func setCmd() {
 
 	var latestBaseCommit Commit
 	if flag.NArg() > 2 {
-		latestBaseCommit = NewCommit(flag.Arg(2))
-		fmt.Printf("Using the latest base commit provided: %s\n",
+		ref := NewArbitraryRef(flag.Arg(2))
+		latestBaseCommit = ref.Commit()
+		fmt.Printf("Using the latest base commit from the provided ref: %s\n",
 			aurora.Bold(latestBaseCommit),
 		)
 	} else {

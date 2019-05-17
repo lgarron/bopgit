@@ -8,7 +8,7 @@ import (
 )
 
 func hash(ref string) string {
-	return getGitValue("show-ref", "--heads", "-s", ref)
+	return getGitValue("rev-parse", ref)
 }
 
 type Ref interface {
@@ -55,6 +55,10 @@ func NewArbitraryRef(refID string) ArbitraryRef {
 	return ArbitraryRef{
 		refID: refID,
 	}
+}
+
+func (r ArbitraryRef) Commit() Commit {
+	return NewCommit(hash(r.refID))
 }
 
 func (r ArbitraryRef) ID() string {
