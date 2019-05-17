@@ -11,13 +11,13 @@ var debug = false
 
 func showHelp() {
 	fmt.Println(`Usage:
-    set [optional arguments] baseRef
-    set [optional arguments] branch baseRef
-    set [optional arguments] branch baseRef latest-base-commit
-    update [optional arguments] branch
+  set [optional arguments] baseRef
+  set [optional arguments] branch baseRef
+  set [optional arguments] branch baseRef latest-base-commit
+  update [optional arguments] branch
 
-    Optional arguments:
-    	--debug`)
+  Optional arguments:
+    --debug`)
 }
 
 func mustHaveMinNArgs(n int) {
