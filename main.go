@@ -10,6 +10,7 @@ import (
 
 var debug = false
 var showDistancesInTree = true
+var showUpstreamDistances = true
 
 const globalMaxNArgs = 4
 

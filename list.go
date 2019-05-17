@@ -10,7 +10,7 @@ import (
 )
 
 func maybeNumCommitsAheadStr(branch Ref, comparison Ref) string {
-	ahead, err := maybeNumCommitsAhead(execOptions{timeout: 200 * time.Millisecond}, branch, comparison)
+	ahead, err := maybeNumCommitsAhead(execOptions{timeout: 50 * time.Millisecond}, branch, comparison)
 	aheadStr := strconv.Itoa(ahead)
 	if err != nil {
 		aheadStr = "???"
@@ -32,6 +32,21 @@ func ensureInTree(t treeprint.Tree, nodeMemo map[string]treeprint.Tree, branch B
 	}
 	parentNode := ensureInTree(t, nodeMemo, baseBranch)
 
+	suffix := ""
+	if showUpstreamDistances {
+		upstreamName, err := maybeGetGitValue(execOptions{},
+			"rev-parse", "--abbrev-ref",
+			fmt.Sprintf("%s@{upstream}", branch.Name),
+		)
+		if err == nil {
+			upstream := NewBranch(upstreamName)
+			suffix = fmt.Sprintf(" | upstream: %s/%s",
+				aurora.Sprintf(aurora.Red("+%s"), maybeNumCommitsAheadStr(branch, upstream)),
+				aurora.Sprintf(aurora.Green("-%s"), maybeNumCommitsAheadStr(upstream, branch)),
+			)
+		}
+	}
+
 	var newNode treeprint.Tree
 	commitPluralized := "commits"
 	commitsOnBranchStr := maybeNumCommitsAheadStr(branch, getLatestBaseCommit(branch))
@@ -39,12 +54,13 @@ func ensureInTree(t treeprint.Tree, nodeMemo map[string]treeprint.Tree, branch B
 		commitPluralized = "commit"
 	}
 	if showDistancesInTree {
-		metaText := fmt.Sprintf("%s [%s / %s] (%s %s)",
-			aurora.Bold(branch.Name),
+		metaText := fmt.Sprintf("%s/%s | %s | %s %s%s",
 			aurora.Sprintf(aurora.Red("-%s"), maybeNumCommitsAheadStr(baseBranch, branch)),
 			aurora.Sprintf(aurora.Green("+%s"), maybeNumCommitsAheadStr(branch, baseBranch)),
+			aurora.Bold(branch.Name),
 			commitsOnBranchStr,
 			commitPluralized,
+			suffix,
 		)
 		// newNode = parentNode.AddMetaBranch(metaText, )
 		newNode = parentNode.AddBranch(metaText)
