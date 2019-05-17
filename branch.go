@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/logrusorgru/aurora"
 )
@@ -42,4 +43,19 @@ func numCommitsAhead(branch Ref, comparison Ref) int {
 		os.Exit(1)
 	}
 	return i
+}
+
+func bopgitBranches() []Branch {
+	// TODO: Look up the `sym-base` refs instead?
+	// (Would probably require fixing https://github.com/lgarron/bopgit/issues/3)
+	branchesStr := getGitValue("for-each-ref", "--format=%(refname:short)", "refs/bopgit/latest-base-commit")
+	branchRefs := strings.Split(branchesStr, "\n")
+
+	branches := []Branch{}
+	for _, branchRef := range branchRefs {
+		branchName := strings.TrimPrefix(branchRef, "bopgit/latest-base-commit/")
+		branches = append(branches, NewBranch(branchName))
+	}
+
+	return branches
 }

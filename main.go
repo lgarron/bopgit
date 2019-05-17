@@ -6,17 +6,19 @@ import (
 	"os"
 
 	"github.com/logrusorgru/aurora"
+	"github.com/xlab/treeprint"
 )
 
 var debug = false
 
 func showHelp() {
 	fmt.Println(`Usage:
-  set base-branch
-  set base-branch latest-base-commit
+  track base-branch
+  track base-branch latest-base-commit
   info
   info branch
   update
+  list
 
   Optional arguments (before positional):
     --debug`)
@@ -35,19 +37,21 @@ func main() {
 	switch flag.Arg(0) {
 	case "help":
 		showHelp()
-	case "set":
-		setCmd()
+	case "track":
+		trackCmd()
 	case "update":
 		updateCmd()
 	case "info":
 		infoCmd()
+	case "list":
+		listCmd()
 	default:
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", flag.Arg(0))
 		os.Exit(1)
 	}
 }
 
-func setCmd() {
+func trackCmd() {
 	if flag.NArg() < 2 || flag.NArg() > 3 {
 		showHelp()
 		os.Exit(1)
@@ -57,7 +61,7 @@ func setCmd() {
 
 	branch := currentBranch()
 
-	fmt.Printf("Setting the base branch for %s to %s\n",
+	fmt.Printf("Setting branch %s to track %s\n",
 		aurora.Bold(branch),
 		aurora.Bold(baseBranch),
 	)
@@ -77,12 +81,12 @@ func setCmd() {
 	}
 
 	branchMustContain(branch, latestBaseCommit)
-	set(baseBranch, latestBaseCommit, branch)
+	track(baseBranch, latestBaseCommit, branch)
 }
 
-func set(baseBranch Branch, latestBaseCommit Commit, branch Branch) {
-	setSymBase(branch, baseBranch, "bopgit set")
-	setLatestBaseCommit(branch, latestBaseCommit, "bopgit set")
+func track(baseBranch Branch, latestBaseCommit Commit, branch Branch) {
+	setSymBase(branch, baseBranch, "bopgit track")
+	setLatestBaseCommit(branch, latestBaseCommit, "bopgit track")
 
 	fmt.Println()
 	fmt.Printf(aurora.Sprintf(aurora.Green("✅ %s is now tracking %s\n"),
@@ -139,7 +143,7 @@ func update(branch Branch) {
 		aurora.Bold(oldHeadCommit),
 	)
 
-	// TODO: Set backup ref.
+	// TODO: track backup ref.
 	rebaseOnto(newLatestBaseCommit, oldLatestBaseCommit, branch)
 	setLatestBaseCommit(branch, newLatestBaseCommit, "bopgit update")
 
@@ -157,7 +161,7 @@ func update(branch Branch) {
 	fmt.Printf(`To restore to the previous state, run:
   git checkout %s
   git reset --hard %s
-  bopgit set %s %s %s
+  bopgit track %s %s %s
 `,
 		aurora.Bold(branch.Name),
 		aurora.Bold(oldHeadCommit.Hash),
@@ -227,4 +231,41 @@ func info(branch Branch) {
 		aurora.Bold(baseBranch),
 		aurora.Bold(branch),
 	)
+}
+
+func listCmd() {
+	if flag.NArg() < 1 || flag.NArg() > 1 {
+		showHelp()
+		os.Exit(1)
+	}
+
+	list()
+}
+
+func ensureInTree(tree treeprint.Tree, nodeMemo map[string]treeprint.Tree, branch Branch) treeprint.Tree {
+	node := nodeMemo[branch.Name]
+	if node != nil {
+		return node
+	}
+	baseBranch, err := mabyeGetSymBase(branch)
+	if err != nil {
+		// New top-level
+		newNode := tree.AddBranch(branch.Name)
+		nodeMemo[branch.Name] = newNode
+		return newNode
+	}
+	parentNode := ensureInTree(tree, nodeMemo, baseBranch)
+	newNode := parentNode.AddBranch(branch.Name)
+	nodeMemo[branch.Name] = newNode
+	return newNode
+}
+
+func list() {
+	tree := treeprint.New()
+	nodeMemo := map[string]treeprint.Tree{}
+	for _, branch := range bopgitBranches() {
+		ensureInTree(tree, nodeMemo, branch)
+	}
+
+	fmt.Printf("%s\n", tree)
 }
