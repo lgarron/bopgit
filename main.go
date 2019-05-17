@@ -4,15 +4,14 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"strconv"
-	"time"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/xlab/treeprint"
 )
 
 var debug = false
 var showDistancesInTree = true
+
+const globalMaxNArgs = 4
 
 func showHelp() {
 	fmt.Println(`Usage:
@@ -27,9 +26,22 @@ func showHelp() {
     --debug`)
 }
 
+func mustHaveNArgsInRange(min int, max int) {
+	if max > globalMaxNArgs {
+		fmt.Errorf("Internal argument count error.")
+		os.Exit(1)
+	}
+
+	if flag.NArg() < min || flag.NArg() > max {
+		showHelp()
+		os.Exit(1)
+	}
+}
+
 func main() {
 	debugPtr := flag.Bool("debug", false, "debug")
 	flag.Parse()
+	mustHaveNArgsInRange(1, 4)
 	if flag.NArg() < 1 {
 		showHelp()
 		os.Exit(0)
@@ -54,11 +66,17 @@ func main() {
 	}
 }
 
-func trackCmd() {
-	if flag.NArg() < 2 || flag.NArg() > 3 {
-		showHelp()
-		os.Exit(1)
+// Defaults to current branch.
+func branchArg(idx int) Branch {
+	if flag.NArg() > idx {
+		return NewBranch(flag.Arg(idx))
 	}
+
+	return currentBranch()
+}
+
+func trackCmd() {
+	mustHaveNArgsInRange(2, 3)
 
 	baseBranch := NewBranch(flag.Arg(1))
 
@@ -87,22 +105,8 @@ func trackCmd() {
 	track(baseBranch, latestBaseCommit, branch)
 }
 
-func track(baseBranch Branch, latestBaseCommit Commit, branch Branch) {
-	setSymBase(branch, baseBranch, "bopgit track")
-	setLatestBaseCommit(branch, latestBaseCommit, "bopgit track")
-
-	fmt.Println()
-	fmt.Printf(aurora.Sprintf(aurora.Green("✅ %s is now tracking %s\n"),
-		aurora.Green(aurora.Bold(branch)),
-		aurora.Green(aurora.Bold(baseBranch)),
-	))
-}
-
 func updateCmd() {
-	if flag.NArg() < 1 || flag.NArg() > 1 {
-		showHelp()
-		os.Exit(1)
-	}
+	mustHaveNArgsInRange(1, 1)
 
 	branch := currentBranch()
 
@@ -113,80 +117,10 @@ func updateCmd() {
 	update(branch)
 }
 
-func update(branch Branch) {
-	baseBranch, err := mabyeGetSymBase(branch)
-	if err != nil {
-		fmt.Println("bopgit is not tracking this branch.")
-		os.Exit(1)
-	}
-	newLatestBaseCommit := baseBranch.Commit()
-	oldLatestBaseCommit := getLatestBaseCommit(branch)
-
-	if newLatestBaseCommit.Equals(oldLatestBaseCommit) {
-		fmt.Printf("Base commit %s is up to date.\n",
-			aurora.Bold(oldLatestBaseCommit),
-		)
-		os.Exit(0)
-	}
-
-	fmt.Println()
-
-	fmt.Printf("Old base commit: %s\n",
-		aurora.Bold(oldLatestBaseCommit),
-	)
-
-	fmt.Printf("New base commit: %s\n",
-		aurora.Bold(newLatestBaseCommit),
-	)
-
-	fmt.Println()
-
-	oldHeadCommit := branch.Commit()
-	fmt.Printf("Old HEAD: %s\n",
-		aurora.Bold(oldHeadCommit),
-	)
-
-	// TODO: track backup ref.
-	rebaseOnto(newLatestBaseCommit, oldLatestBaseCommit, branch)
-	setLatestBaseCommit(branch, newLatestBaseCommit, "bopgit update")
-
-	fmt.Printf("New HEAD: %s\n",
-		aurora.Bold(branch.Commit()),
-	)
-
-	fmt.Println()
-	fmt.Printf(aurora.Sprintf(aurora.Green("✅ Updated %s\n"),
-		aurora.Green(aurora.Bold(branch)),
-	))
-
-	fmt.Println()
-
-	fmt.Printf(`To restore to the previous state, run:
-  git checkout %s
-  git reset --hard %s
-  bopgit track %s %s %s
-`,
-		aurora.Bold(branch.Name),
-		aurora.Bold(oldHeadCommit.Hash),
-		aurora.Bold(baseBranch.Name),
-		aurora.Bold(oldLatestBaseCommit.Hash),
-		aurora.Bold(branch.Name),
-	)
-}
-
 func infoCmd() {
-	if flag.NArg() < 1 || flag.NArg() > 2 {
-		showHelp()
-		os.Exit(1)
-	}
+	mustHaveNArgsInRange(1, 2)
 
-	var branch Branch
-	if flag.NArg() > 1 {
-		branch = NewBranch(flag.Arg(1))
-	} else {
-		branch = currentBranch()
-	}
-
+	var branch = branchArg(1)
 	fmt.Printf("ℹ️  Info for branch %s\n",
 		aurora.Bold(branch),
 	)
@@ -194,109 +128,7 @@ func infoCmd() {
 	info(branch)
 }
 
-func info(branch Branch) {
-	fmt.Println()
-	baseBranch, err := mabyeGetSymBase(branch)
-	if err != nil {
-		fmt.Println("bopgit is not tracking this branch.")
-		os.Exit(0)
-	}
-	fmt.Printf("Base branch: %s\n",
-		aurora.Bold(baseBranch),
-	)
-
-	latestBaseCommit := getLatestBaseCommit(branch)
-	fmt.Printf("Latest base commit: %s\n",
-		aurora.Bold(latestBaseCommit),
-	)
-
-	if !doesBranchContain(branch, latestBaseCommit) {
-		fmt.Fprintf(os.Stderr, "The branch doesn't contain that `bopgit` believes to be its latest base commit!")
-		os.Exit(1)
-	}
-
-	fmt.Println()
-
-	// TODO: avoid assuming a linear history?
-	fmt.Printf("%d commits to %s since its base commit.\n",
-		numCommitsAhead(branch, latestBaseCommit),
-		aurora.Bold(branch),
-	)
-
-	fmt.Printf("%d commits in %s that %s doesn't have.\n",
-		numCommitsAhead(branch, baseBranch),
-		aurora.Bold(branch),
-		aurora.Bold(baseBranch),
-	)
-
-	fmt.Printf("%d commits in %s that %s doesn't have.\n",
-		numCommitsAhead(baseBranch, branch),
-		aurora.Bold(baseBranch),
-		aurora.Bold(branch),
-	)
-}
-
 func listCmd() {
-	if flag.NArg() < 1 || flag.NArg() > 1 {
-		showHelp()
-		os.Exit(1)
-	}
-
+	mustHaveNArgsInRange(1, 1)
 	list()
-}
-
-func maybeNumCommitsAheadStr(branch Ref, comparison Ref) string {
-	ahead, err := maybeNumCommitsAhead(execOptions{timeout: 200 * time.Millisecond}, branch, comparison)
-	aheadStr := strconv.Itoa(ahead)
-	if err != nil {
-		aheadStr = "???"
-	}
-	return aheadStr
-}
-
-func ensureInTree(t treeprint.Tree, nodeMemo map[string]treeprint.Tree, branch Branch) treeprint.Tree {
-	node := nodeMemo[branch.Name]
-	if node != nil {
-		return node
-	}
-	baseBranch, err := mabyeGetSymBase(branch)
-	if err != nil {
-		// New top-level
-		newNode := t.AddBranch(branch.Name)
-		nodeMemo[branch.Name] = newNode
-		return newNode
-	}
-	parentNode := ensureInTree(t, nodeMemo, baseBranch)
-
-	var newNode treeprint.Tree
-	commitPluralized := "commits"
-	commitsOnBranchStr := maybeNumCommitsAheadStr(branch, getLatestBaseCommit(branch))
-	if commitsOnBranchStr == "1" {
-		commitPluralized = "commit"
-	}
-	if showDistancesInTree {
-		metaText := fmt.Sprintf("%s [%s / %s] (%s %s)",
-			aurora.Bold(branch.Name),
-			aurora.Sprintf(aurora.Red("-%s"), maybeNumCommitsAheadStr(baseBranch, branch)),
-			aurora.Sprintf(aurora.Green("+%s"), maybeNumCommitsAheadStr(branch, baseBranch)),
-			commitsOnBranchStr,
-			commitPluralized,
-		)
-		// newNode = parentNode.AddMetaBranch(metaText, )
-		newNode = parentNode.AddBranch(metaText)
-	} else {
-		newNode = parentNode.AddBranch(branch.Name)
-	}
-	nodeMemo[branch.Name] = newNode
-	return newNode
-}
-
-func list() {
-	t := treeprint.New()
-	nodeMemo := map[string]treeprint.Tree{}
-	for _, branch := range bopgitBranches() {
-		ensureInTree(t, nodeMemo, branch)
-	}
-
-	fmt.Printf("%s\n", t)
 }
