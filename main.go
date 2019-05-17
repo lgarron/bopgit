@@ -13,13 +13,13 @@ var debug = false
 
 func showHelp() {
 	fmt.Println(`Usage:
-  set [optional arguments] base
-  set [optional arguments] base latest-base-commit
-  update [optional arguments]
-  info [optional arguments]
-  info [optional arguments] branch
+  set base-branch
+  set base-branch latest-base-commit
+  info
+  info branch
+  update
 
-  Optional arguments:
+  Optional arguments (before positional):
     --debug`)
 }
 
