@@ -3,14 +3,24 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
 	"os/exec"
 	"strings"
-
-	"github.com/logrusorgru/aurora"
 )
 
+func Log(args ...interface{}) {
+	for i, a := range args {
+		if i > 0 {
+			fmt.Print(" ")
+		}
+		fmt.Print(a)
+	}
+	fmt.Print("\n")
+}
+
 func gitExecCommand(args ...string) *exec.Cmd {
+	if debug {
+		fmt.Printf("git command: %v\n", args)
+	}
 	return exec.Command("git", args...)
 }
 
@@ -18,16 +28,19 @@ func runGitCommand(args ...string) string {
 	output, err := gitExecCommand(args...).Output()
 	if err != nil {
 		log.Fatal(err)
-		os.Exit(1)
 	}
 	return strings.TrimSuffix(string(output), "\n")
 }
 
-func branchMustExist(branch gitBranch) {
-	if !doesBranchExist(branch) {
-		fmt.Errorf("Branch does not exist: ",
-			aurora.Bold(branch),
-		)
-		showHelpAndExit()
+func isGitCommandExitCodeZero(args ...string) bool {
+	cmd := gitExecCommand(args...)
+	err := cmd.Start()
+	if err != nil {
+		log.Fatal(err)
 	}
+	err = cmd.Wait()
+	if err != nil {
+		return false
+	}
+	return true
 }

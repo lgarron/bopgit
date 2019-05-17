@@ -3,31 +3,38 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
 
 	"github.com/logrusorgru/aurora"
 )
 
-func showHelpAndExit() {
+var debug = false
+
+func showHelp() {
 	fmt.Println(`Usage:
-    set [baseRef]
-    set [branch] [baseRef]`)
-	os.Exit(0)
+    set [optional arguments] baseRef
+    set [optional arguments] branch baseRef
+    set [optional arguments] branch baseRef latest-base-commit
+
+    Optional arguments:
+    	--debug`)
 }
 
 func mustHaveMinNArgs(n int) {
 	if flag.NArg() < n {
-		showHelpAndExit()
+		showHelp()
 	}
 }
 
 func main() {
+	debugPtr := flag.Bool("debug", false, "debug")
 	flag.Parse()
 	mustHaveMinNArgs(1)
 
+	debug = *debugPtr
+
 	switch flag.Arg(0) {
 	case "help":
-		showHelpAndExit()
+		showHelp()
 	case "set":
 		setCmd()
 	case "update":
@@ -37,15 +44,18 @@ func main() {
 
 func setCmd() {
 	if flag.NArg() == 2 {
-		set(currentBranch(), flag.Arg(1))
+		set(currentBranch(), flag.Arg(1), nil)
 	} else if flag.NArg() == 3 {
-		set(flag.Arg(1), flag.Arg(2))
+		set(flag.Arg(1), flag.Arg(2), nil)
+	} else if flag.NArg() == 4 {
+		arg3 := flag.Arg(3)
+		set(flag.Arg(1), flag.Arg(2), &arg3)
 	} else {
-		showHelpAndExit()
+		showHelp()
 	}
 }
 
-func set(branch gitBranch, baseBranch gitBranch) {
+func set(branch gitBranch, baseBranch gitBranch, maybeLatestBaseCommit *string) {
 	branchMustExist(branch)
 	branchMustExist(baseBranch)
 
@@ -56,11 +66,19 @@ func set(branch gitBranch, baseBranch gitBranch) {
 
 	setSymBase(branch, baseBranch, "bopgit set")
 
-	latestBaseCommit := hash(baseBranch)
-
-	fmt.Printf("Latest base commit is %s\n",
-		aurora.Bold(latestBaseCommit),
-	)
+	var latestBaseCommit string
+	if maybeLatestBaseCommit == nil {
+		latestBaseCommit = hash(baseBranch)
+		fmt.Printf("Calculated latest base commit: %s\n",
+			aurora.Bold(latestBaseCommit),
+		)
+	} else {
+		latestBaseCommit = *maybeLatestBaseCommit
+		fmt.Printf("Using the latest base commit provided: %s\n",
+			aurora.Bold(latestBaseCommit),
+		)
+	}
+	branchMustContain(branch, latestBaseCommit)
 	setLatestBaseCommit(branch, latestBaseCommit, "bopgit set")
 }
 
@@ -70,7 +88,7 @@ func updateCmd() {
 	} else if flag.NArg() == 2 {
 		update(flag.Arg(1))
 	} else {
-		showHelpAndExit()
+		showHelp()
 	}
 }
 
