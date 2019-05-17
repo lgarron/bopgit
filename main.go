@@ -3,15 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
-	"os/exec"
-	"strings"
 
 	"github.com/logrusorgru/aurora"
 )
 
-func showHelp() {
+func showHelpAndExit() {
 	fmt.Println(`Usage:
     set [baseRef]
     set [branch] [baseRef]`)
@@ -20,7 +17,7 @@ func showHelp() {
 
 func mustHaveMinNArgs(n int) {
 	if flag.NArg() < n {
-		showHelp()
+		showHelpAndExit()
 	}
 }
 
@@ -30,31 +27,12 @@ func main() {
 
 	switch flag.Arg(0) {
 	case "help":
-		showHelp()
+		showHelpAndExit()
 	case "set":
 		setCmd()
+	case "update":
+		setCmd()
 	}
-}
-
-func runGitCommand(args ...string) string {
-	output, err := exec.Command("git", args...).Output()
-	if err != nil {
-		log.Fatal(err)
-		os.Exit(1)
-	}
-	return strings.TrimSuffix(string(output), "\n")
-}
-
-func currentBranch() string {
-	return runGitCommand("rev-parse", "--abbrev-ref", "HEAD")
-}
-
-func bopgitSymBaseRefName(branch string) string {
-	return fmt.Sprintf("refs/bopgit/sym-base/%s", branch)
-}
-
-func bopgitCurrentBaseRefName(branch string) string {
-	return fmt.Sprintf("refs/bopgit/current-base/%s", branch)
 }
 
 func setCmd() {
@@ -63,18 +41,46 @@ func setCmd() {
 	} else if flag.NArg() == 3 {
 		set(flag.Arg(1), flag.Arg(2))
 	} else {
-		showHelp()
+		showHelpAndExit()
 	}
 }
 
-func set(branch string, baseRef string) {
+func set(branch gitBranch, baseBranch gitBranch) {
+	branchMustExist(branch)
+	branchMustExist(baseBranch)
+
 	fmt.Printf("Setting the base branch for %s to %s\n",
 		aurora.Bold(branch),
-		aurora.Bold(baseRef),
+		aurora.Bold(baseBranch),
 	)
 
-	runGitCommand("symbolic-ref", "-m", "bopgit set", bopgitSymBaseRefName(branch), baseRef)
-	runGitCommand("update-ref", bopgitCurrentBaseRefName(branch), baseRef)
-	// git symbolic-ref [-m <reason>] <name> <ref>
-	// fmt.Println(currentBranch(), baseRef)
+	setSymBase(branch, baseBranch, "bopgit set")
+
+	latestBaseCommit := hash(baseBranch)
+
+	fmt.Printf("Latest base commit is %s\n",
+		aurora.Bold(latestBaseCommit),
+	)
+	setLatestBaseCommit(branch, latestBaseCommit, "bopgit set")
+}
+
+func updateCmd() {
+	if flag.NArg() == 1 {
+		update(currentBranch())
+	} else if flag.NArg() == 2 {
+		update(flag.Arg(1))
+	} else {
+		showHelpAndExit()
+	}
+}
+
+func update(branch gitBranch) {
+	branchMustExist(branch)
+
+	fmt.Printf("Updating branch %s\n",
+		aurora.Bold(branch),
+	)
+
+	// setSymBase(branch, baseBranch, "bopgit set")
+	// setLatestBaseCommit(branch, baseBranch, "bopgit set")
 }
