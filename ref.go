@@ -14,6 +14,14 @@ func setSymBase(branch gitBranch, baseBranch gitBranch, reason string) {
 	runGitCommand("symbolic-ref", "-m", reason, symBaseRefName(branch), baseBranch)
 }
 
-func setLatestBaseCommit(branch gitBranch, baseBranch gitBranch, reason string) {
-	runGitCommand("update-ref", "-m", reason, latestBaseCommitRefName(branch), baseBranch)
+func setLatestBaseCommit(branch gitBranch, commit string, reason string) {
+	runGitCommand("update-ref", "-m", reason, latestBaseCommitRefName(branch), commit)
+}
+
+func getSymBase(branch gitBranch) string {
+	return runGitCommand("symbolic-ref", symBaseRefName(branch))
+}
+
+func getLatestBaseCommit(branch gitBranch) string {
+	return runGitCommand("rev-parse", latestBaseCommitRefName(branch))
 }

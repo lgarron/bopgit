@@ -14,6 +14,7 @@ func showHelp() {
     set [optional arguments] baseRef
     set [optional arguments] branch baseRef
     set [optional arguments] branch baseRef latest-base-commit
+    update [optional arguments] branch
 
     Optional arguments:
     	--debug`)
@@ -99,6 +100,10 @@ func update(branch gitBranch) {
 		aurora.Bold(branch),
 	)
 
-	// setSymBase(branch, baseBranch, "bopgit set")
-	// setLatestBaseCommit(branch, baseBranch, "bopgit set")
+	baseBranch := getSymBase(branch)
+	newLatestBaseCommit := hash(baseBranch)
+	oldLatestBaseCommit := getLatestBaseCommit(branch)
+	runGitCommand("rebase", "--into", newLatestBaseCommit, oldLatestBaseCommit, branch)
+
+	setLatestBaseCommit(branch, newLatestBaseCommit, "bopgit update")
 }
