@@ -22,7 +22,7 @@ type Commit struct {
 }
 
 func (c Commit) String() string {
-	return fmt.Sprintf("%s", c.Hash)
+	return fmt.Sprintf("#️⃣  %s", c.Hash)
 }
 
 func NewCommit(hashStr string) Commit {
