@@ -18,19 +18,12 @@ func maybeNumCommitsAheadStr(branch Ref, comparison Ref) string {
 	return aheadStr
 }
 
-func ensureInTree(t treeprint.Tree, nodeMemo map[string]treeprint.Tree, branch Branch) treeprint.Tree {
-	node := nodeMemo[branch.Name]
-	if node != nil {
-		return node
+func branchInfo(branch Branch) string {
+	if !showDistancesInTree {
+		return branch.Name
 	}
-	baseBranch, err := mabyeGetSymBase(branch)
-	if err != nil {
-		// New top-level
-		newNode := t.AddBranch(branch.Name)
-		nodeMemo[branch.Name] = newNode
-		return newNode
-	}
-	parentNode := ensureInTree(t, nodeMemo, baseBranch)
+
+	baseBranch := getSymBase(branch)
 
 	suffix := ""
 	if showUpstreamDistances {
@@ -46,26 +39,36 @@ func ensureInTree(t treeprint.Tree, nodeMemo map[string]treeprint.Tree, branch B
 		}
 	}
 
-	var newNode treeprint.Tree
 	commitPluralized := "commits"
 	commitsOnBranchStr := maybeNumCommitsAheadStr(branch, getLatestBaseCommit(branch))
 	if commitsOnBranchStr == "1" {
 		commitPluralized = "commit"
 	}
-	if showDistancesInTree {
-		metaText := fmt.Sprintf("%s/%s | %s | %s %s%s",
-			aurora.Sprintf(aurora.Red("-%s"), maybeNumCommitsAheadStr(baseBranch, branch)),
-			aurora.Sprintf(aurora.Green("+%s"), maybeNumCommitsAheadStr(branch, baseBranch)),
-			aurora.Bold(branch.Name),
-			commitsOnBranchStr,
-			commitPluralized,
-			suffix,
-		)
-		// newNode = parentNode.AddMetaBranch(metaText, )
-		newNode = parentNode.AddBranch(metaText)
-	} else {
-		newNode = parentNode.AddBranch(branch.Name)
+
+	return fmt.Sprintf("%s/%s | %s | %s %s%s",
+		aurora.Sprintf(aurora.Red("-%s"), maybeNumCommitsAheadStr(baseBranch, branch)),
+		aurora.Sprintf(aurora.Green("+%s"), maybeNumCommitsAheadStr(branch, baseBranch)),
+		aurora.Bold(branch.Name),
+		commitsOnBranchStr,
+		commitPluralized,
+		suffix,
+	)
+}
+
+func ensureInTree(t treeprint.Tree, nodeMemo map[string]treeprint.Tree, branch Branch) treeprint.Tree {
+	node := nodeMemo[branch.Name]
+	if node != nil {
+		return node
 	}
+	baseBranch, err := mabyeGetSymBase(branch)
+	if err != nil {
+		// New top-level
+		newNode := t.AddBranch(branch.Name)
+		nodeMemo[branch.Name] = newNode
+		return newNode
+	}
+	parentNode := ensureInTree(t, nodeMemo, baseBranch)
+	newNode := parentNode.AddBranch(branchInfo(branch))
 	nodeMemo[branch.Name] = newNode
 	return newNode
 }
