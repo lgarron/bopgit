@@ -16,6 +16,7 @@ func showHelp() {
   set [optional arguments] base latest-base-commit branch
   update [optional arguments]
   update [optional arguments] branch
+  info [optional arguments] branch
 
   Optional arguments:
     --debug`)
@@ -41,6 +42,8 @@ func main() {
 		setCmd()
 	case "update":
 		updateCmd()
+	case "info":
+		infoCmd()
 	}
 }
 
@@ -113,4 +116,34 @@ func update(branch gitBranch) {
 	oldLatestBaseCommit := getLatestBaseCommit(branch)
 	rebaseOnto(newLatestBaseCommit, oldLatestBaseCommit, branch)
 	setLatestBaseCommit(branch, newLatestBaseCommit, "bopgit update")
+}
+
+func infoCmd() {
+	if flag.NArg() < 2 || flag.NArg() > 3 {
+		showHelp()
+	}
+
+	var branch gitBranch
+	if flag.NArg() > 2 {
+		branch = flag.Arg(2)
+	} else {
+		branch = currentBranch()
+	}
+	branchMustExist(branch)
+
+	fmt.Printf("Info for branch %s\n",
+		aurora.Bold(branch),
+	)
+
+	info(branch)
+}
+
+func info(branch gitBranch) {
+	fmt.Printf("Base branch: %s\n",
+		aurora.Bold(getSymBase(branch)),
+	)
+
+	fmt.Printf("Latest Base commit: %s\n",
+		aurora.Bold(getLatestBaseCommit(branch)),
+	)
 }
