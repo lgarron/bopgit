@@ -199,7 +199,7 @@ func info(branch Branch) {
 
 	latestBaseCommit := getLatestBaseCommit(branch)
 	fmt.Printf("Latest base commit: %s\n",
-		aurora.Bold(getLatestBaseCommit(branch)),
+		aurora.Bold(latestBaseCommit),
 	)
 
 	if !doesBranchContain(branch, latestBaseCommit) {
