@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/logrusorgru/aurora"
 	"github.com/xlab/treeprint"
@@ -242,6 +244,15 @@ func listCmd() {
 	list()
 }
 
+func maybeNumCommitsAheadStr(branch Ref, comparison Ref) string {
+	ahead, err := maybeNumCommitsAhead(execOptions{timeout: 100 * time.Millisecond}, branch, comparison)
+	aheadStr := strconv.Itoa(ahead)
+	if err != nil {
+		aheadStr = "???"
+	}
+	return aheadStr
+}
+
 func ensureInTree(tree treeprint.Tree, nodeMemo map[string]treeprint.Tree, branch Branch) treeprint.Tree {
 	node := nodeMemo[branch.Name]
 	if node != nil {
@@ -255,7 +266,12 @@ func ensureInTree(tree treeprint.Tree, nodeMemo map[string]treeprint.Tree, branc
 		return newNode
 	}
 	parentNode := ensureInTree(tree, nodeMemo, baseBranch)
-	newNode := parentNode.AddBranch(branch.Name)
+
+	metaText := fmt.Sprintf("-%s, +%s",
+		maybeNumCommitsAheadStr(baseBranch, branch),
+		maybeNumCommitsAheadStr(branch, baseBranch),
+	)
+	newNode := parentNode.AddMetaBranch(metaText, branch.Name)
 	nodeMemo[branch.Name] = newNode
 	return newNode
 }

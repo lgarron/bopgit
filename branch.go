@@ -31,13 +31,25 @@ func rebaseOnto(newbase Commit, upstream Commit, root Branch) {
 	runGitCommand("rebase", "--onto", newbase.Hash, upstream.Hash, root.Name)
 }
 
-func numCommitsAhead(branch Ref, comparison Ref) int {
-	s := getGitValue("rev-list", "--left-only", "--count", fmt.Sprintf(
+func maybeNumCommitsAhead(options execOptions, branch Ref, comparison Ref) (int, error) {
+	s, err := maybeGetGitValue(options, "rev-list", "--left-only", "--count", fmt.Sprintf(
 		"%s...%s",
 		branch.ID(),
 		comparison.ID(),
 	))
+	if err != nil {
+		return 0, err
+	}
 	i, err := strconv.Atoi(s)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	return i, nil
+}
+
+func numCommitsAhead(branch Ref, comparison Ref) int {
+	i, err := maybeNumCommitsAhead(execOptions{}, branch, comparison)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
