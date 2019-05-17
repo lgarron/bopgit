@@ -21,6 +21,10 @@ func showHelp() {
   info branch
   update
   list
+  base-branch
+  base-branch branch
+  latest-base-commit
+  latest-base-commit branch
 
   Optional arguments (before positional):
     --debug`)
@@ -60,6 +64,10 @@ func main() {
 		infoCmd()
 	case "list":
 		listCmd()
+	case "branch-base":
+		branchBaseCmd()
+	case "latest-base-commit":
+		latestBaseCommitCmd()
 	default:
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", flag.Arg(0))
 		os.Exit(1)
@@ -131,4 +139,20 @@ func infoCmd() {
 func listCmd() {
 	mustHaveNArgsInRange(1, 1)
 	list()
+}
+
+func branchBaseCmd() {
+	mustHaveNArgsInRange(1, 2)
+
+	branch := branchArg(1)
+
+	fmt.Printf("%s\n", getSymBase(branch).Name)
+}
+
+func latestBaseCommitCmd() {
+	mustHaveNArgsInRange(1, 2)
+
+	branch := branchArg(1)
+
+	fmt.Printf("%s\n", getLatestBaseCommit(branch).Hash)
 }
