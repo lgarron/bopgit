@@ -15,9 +15,7 @@ func showHelp() {
 	fmt.Println(`Usage:
   set [optional arguments] base
   set [optional arguments] base latest-base-commit
-  set [optional arguments] base latest-base-commit branch
   update [optional arguments]
-  update [optional arguments] branch
   info [optional arguments]
   info [optional arguments] branch
 
@@ -51,19 +49,14 @@ func main() {
 }
 
 func setCmd() {
-	if flag.NArg() < 2 || flag.NArg() > 4 {
+	if flag.NArg() < 2 || flag.NArg() > 3 {
 		showHelp()
 		os.Exit(1)
 	}
 
 	baseBranch := NewBranch(flag.Arg(1))
 
-	var branch Branch
-	if flag.NArg() > 3 {
-		branch = NewBranch(flag.Arg(3))
-	} else {
-		branch = currentBranch()
-	}
+	branch := currentBranch()
 
 	fmt.Printf("Setting the base branch for %s to %s\n",
 		aurora.Bold(branch),
@@ -99,17 +92,12 @@ func set(baseBranch Branch, latestBaseCommit Commit, branch Branch) {
 }
 
 func updateCmd() {
-	if flag.NArg() < 1 || flag.NArg() > 2 {
+	if flag.NArg() < 1 || flag.NArg() > 1 {
 		showHelp()
 		os.Exit(1)
 	}
 
-	var branch Branch
-	if flag.NArg() > 1 {
-		branch = NewBranch(flag.Arg(1))
-	} else {
-		branch = currentBranch()
-	}
+	branch := currentBranch()
 
 	fmt.Printf("Updating branch %s\n",
 		aurora.Bold(branch),
