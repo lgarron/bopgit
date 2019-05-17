@@ -90,6 +90,12 @@ func setCmd() {
 func set(baseBranch Branch, latestBaseCommit Commit, branch Branch) {
 	setSymBase(branch, baseBranch, "bopgit set")
 	setLatestBaseCommit(branch, latestBaseCommit, "bopgit set")
+
+	fmt.Println()
+	fmt.Printf(aurora.Sprintf(aurora.Green("✅ %s is now tracking %s\n"),
+		aurora.Green(aurora.Bold(branch)),
+		aurora.Green(aurora.Bold(baseBranch)),
+	))
 }
 
 func updateCmd() {
@@ -150,10 +156,9 @@ func update(branch Branch) {
 	)
 
 	fmt.Println()
-	fmt.Printf("%s", aurora.Green(fmt.Sprintf(
-		"✅ Updated %s\n",
-		aurora.Bold(branch),
-	)))
+	fmt.Printf(aurora.Sprintf(aurora.Green("✅ Updated %s\n"),
+		aurora.Green(aurora.Bold(branch)),
+	))
 
 	fmt.Println()
 
