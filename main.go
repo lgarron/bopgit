@@ -150,7 +150,10 @@ func update(branch Branch) {
 	)
 
 	fmt.Println()
-	fmt.Printf("%s", aurora.Green("✅ Success\n"))
+	fmt.Printf("%s", aurora.Green(fmt.Sprintf(
+		"✅ Updated %s\n",
+		aurora.Bold(branch),
+	)))
 
 	fmt.Println()
 
