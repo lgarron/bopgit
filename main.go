@@ -106,7 +106,11 @@ func updateCmd() {
 }
 
 func update(branch Branch) {
-	baseBranch := getSymBase(branch)
+	baseBranch, err := mabyeGetSymBase(branch)
+	if err != nil {
+		fmt.Println("bopgit is not tracking this branch.")
+		os.Exit(1)
+	}
 	newLatestBaseCommit := baseBranch.Commit()
 	oldLatestBaseCommit := getLatestBaseCommit(branch)
 
