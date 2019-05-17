@@ -10,7 +10,7 @@ import (
 )
 
 func maybeNumCommitsAheadStr(branch Ref, comparison Ref) string {
-	ahead, err := maybeNumCommitsAhead(execOptions{timeout: 50 * time.Millisecond}, branch, comparison)
+	ahead, err := maybeNumCommitsAhead(execOptions{timeout: 100 * time.Millisecond}, branch, comparison)
 	aheadStr := strconv.Itoa(ahead)
 	if err != nil {
 		aheadStr = "???"
