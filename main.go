@@ -20,7 +20,7 @@ func showHelp() {
   info
   info branch
   update
-  list
+  tree
 
   Optional arguments (before positional):
     --debug`)
@@ -45,8 +45,8 @@ func main() {
 		updateCmd()
 	case "info":
 		infoCmd()
-	case "list":
-		listCmd()
+	case "tree":
+		treeCmd()
 	default:
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", flag.Arg(0))
 		os.Exit(1)
@@ -235,13 +235,13 @@ func info(branch Branch) {
 	)
 }
 
-func listCmd() {
+func treeCmd() {
 	if flag.NArg() < 1 || flag.NArg() > 1 {
 		showHelp()
 		os.Exit(1)
 	}
 
-	list()
+	tree()
 }
 
 func maybeNumCommitsAheadStr(branch Ref, comparison Ref) string {
@@ -253,7 +253,7 @@ func maybeNumCommitsAheadStr(branch Ref, comparison Ref) string {
 	return aheadStr
 }
 
-func ensureInTree(tree treeprint.Tree, nodeMemo map[string]treeprint.Tree, branch Branch) treeprint.Tree {
+func ensureInTree(t treeprint.Tree, nodeMemo map[string]treeprint.Tree, branch Branch) treeprint.Tree {
 	node := nodeMemo[branch.Name]
 	if node != nil {
 		return node
@@ -261,11 +261,11 @@ func ensureInTree(tree treeprint.Tree, nodeMemo map[string]treeprint.Tree, branc
 	baseBranch, err := mabyeGetSymBase(branch)
 	if err != nil {
 		// New top-level
-		newNode := tree.AddBranch(branch.Name)
+		newNode := t.AddBranch(branch.Name)
 		nodeMemo[branch.Name] = newNode
 		return newNode
 	}
-	parentNode := ensureInTree(tree, nodeMemo, baseBranch)
+	parentNode := ensureInTree(t, nodeMemo, baseBranch)
 
 	metaText := fmt.Sprintf("-%s, +%s",
 		maybeNumCommitsAheadStr(baseBranch, branch),
@@ -276,12 +276,12 @@ func ensureInTree(tree treeprint.Tree, nodeMemo map[string]treeprint.Tree, branc
 	return newNode
 }
 
-func list() {
-	tree := treeprint.New()
+func tree() {
+	t := treeprint.New()
 	nodeMemo := map[string]treeprint.Tree{}
 	for _, branch := range bopgitBranches() {
-		ensureInTree(tree, nodeMemo, branch)
+		ensureInTree(t, nodeMemo, branch)
 	}
 
-	fmt.Printf("%s\n", tree)
+	fmt.Printf("%s\n", t)
 }
