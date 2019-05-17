@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"strconv"
 
 	"github.com/logrusorgru/aurora"
 )
@@ -61,4 +63,17 @@ func branchMustContain(branch gitBranch, ref string) {
 
 func rebaseOnto(newbase string, upstream string, root gitBranch) {
 	runGitCommand("rebase", "--into", newbase, upstream, root.name)
+}
+
+func numCommitsAhead(branch string, comparison string) int {
+	s := runGitCommand("rev-list", "--left-only", "--count", fmt.Sprintf(
+		"%s...%s",
+		branch,
+		comparison,
+	))
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return i
 }

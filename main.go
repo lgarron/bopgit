@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/logrusorgru/aurora"
@@ -153,11 +154,38 @@ func infoCmd() {
 func info(branch gitBranch) {
 	// TODO: Calculate if branch is tracked by `bopgit`.
 
+	baseBranch := getSymBase(branch)
 	fmt.Printf("Base branch: %s\n",
-		aurora.Bold(getSymBase(branch)),
+		aurora.Bold(baseBranch),
 	)
 
+	latestBaseCommit := getLatestBaseCommit(branch)
 	fmt.Printf("Latest base commit: %s\n",
 		aurora.Bold(getLatestBaseCommit(branch)),
+	)
+
+	if !doesBranchContain(branch, latestBaseCommit) {
+		log.Fatal("The branch doesn't contain that `bopgit` believes to be its latest base commit!")
+		os.Exit(1)
+	}
+
+	fmt.Println()
+
+	// TODO: avoid assuming a linear history?
+	fmt.Printf("%d commits to %s since the its base commit.\n",
+		numCommitsAhead(branch.name, latestBaseCommit),
+		aurora.Bold(branch),
+	)
+
+	fmt.Printf("%d commits in %s that %s doesn't have.\n",
+		numCommitsAhead(branch.name, baseBranch.name),
+		aurora.Bold(branch),
+		aurora.Bold(baseBranch),
+	)
+
+	fmt.Printf("%d commits in %s that %s doesn't have.\n",
+		numCommitsAhead(baseBranch.name, branch.name),
+		aurora.Bold(baseBranch),
+		aurora.Bold(branch),
 	)
 }
