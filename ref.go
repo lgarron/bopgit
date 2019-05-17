@@ -11,6 +11,10 @@ func hash(ref string) string {
 	return runGitCommand("show-ref", "--heads", "-s", ref)
 }
 
+type Ref interface {
+	ID() string
+}
+
 /******** Commit *********/
 
 type Commit struct {
@@ -28,25 +32,33 @@ func NewCommit(hashStr string) Commit {
 	}
 }
 
-/******** Ref *********/
-
-type Ref struct {
-	ID string
+func (c Commit) ID() string {
+	return c.Hash
 }
 
-func (r Ref) String() string {
-	return fmt.Sprintf("⇢ %s", r.ID)
+/******** ArbitraryRef *********/
+
+type ArbitraryRef struct {
+	refID string
 }
 
-func NewRef(refID string) Ref {
-	// TODO: Check for existence of Ref.
-	return Ref{
-		ID: refID,
+func (r ArbitraryRef) String() string {
+	return fmt.Sprintf("⇢ %s", r.refID)
+}
+
+func NewArbitraryRef(refID string) ArbitraryRef {
+	// TODO: Check for existence of ArbitraryRef.
+	return ArbitraryRef{
+		refID: refID,
 	}
 }
 
-func (r Ref) Commit() Commit {
-	return NewCommit(hash(r.ID))
+func (r ArbitraryRef) Commit() Commit {
+	return NewCommit(hash(r.refID))
+}
+
+func (r ArbitraryRef) ID() string {
+	return r.refID
 }
 
 /******** Branch *********/
@@ -82,4 +94,8 @@ func NewBranch(branchName string) Branch {
 
 func (b Branch) Commit() Commit {
 	return NewCommit(hash(b.Name))
+}
+
+func (b Branch) ID() string {
+	return b.Name
 }

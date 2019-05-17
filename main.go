@@ -67,14 +67,14 @@ func setCmd() {
 		aurora.Bold(baseBranch),
 	)
 
-	var latestBaseCommit string
+	var latestBaseCommit Commit
 	if flag.NArg() > 2 {
-		latestBaseCommit = flag.Arg(2)
+		latestBaseCommit = NewCommit(flag.Arg(2))
 		fmt.Printf("Using the latest base commit provided: %s\n",
 			aurora.Bold(latestBaseCommit),
 		)
 	} else {
-		latestBaseCommit = hash(baseBranch.Name)
+		latestBaseCommit = baseBranch.Commit()
 		fmt.Printf("Calculated latest base commit: %s\n",
 			aurora.Bold(latestBaseCommit),
 		)
@@ -84,7 +84,7 @@ func setCmd() {
 	set(baseBranch, latestBaseCommit, branch)
 }
 
-func set(baseBranch Branch, latestBaseCommit string, branch Branch) {
+func set(baseBranch Branch, latestBaseCommit Commit, branch Branch) {
 	setSymBase(branch, baseBranch, "bopgit set")
 	setLatestBaseCommit(branch, latestBaseCommit, "bopgit set")
 }
@@ -111,7 +111,7 @@ func updateCmd() {
 
 func update(branch Branch) {
 	baseBranch := getSymBase(branch)
-	newLatestBaseCommit := hash(baseBranch.Name)
+	newLatestBaseCommit := baseBranch.Commit()
 	oldLatestBaseCommit := getLatestBaseCommit(branch)
 
 	fmt.Printf("Updating branch: %s\n",
@@ -173,18 +173,18 @@ func info(branch Branch) {
 
 	// TODO: avoid assuming a linear history?
 	fmt.Printf("%d commits to %s since the its base commit.\n",
-		numCommitsAhead(branch.Name, latestBaseCommit),
+		numCommitsAhead(branch, latestBaseCommit),
 		aurora.Bold(branch),
 	)
 
 	fmt.Printf("%d commits in %s that %s doesn't have.\n",
-		numCommitsAhead(branch.Name, baseBranch.Name),
+		numCommitsAhead(branch, baseBranch),
 		aurora.Bold(branch),
 		aurora.Bold(baseBranch),
 	)
 
 	fmt.Printf("%d commits in %s that %s doesn't have.\n",
-		numCommitsAhead(baseBranch.Name, branch.Name),
+		numCommitsAhead(baseBranch, branch),
 		aurora.Bold(baseBranch),
 		aurora.Bold(branch),
 	)
