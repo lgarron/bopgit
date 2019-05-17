@@ -39,7 +39,11 @@ func runGitCommand(args ...string) {
 	cmd := gitExecCommand(args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Run()
+	err := cmd.Run()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 }
 
 func isGitCommandExitCodeZero(args ...string) bool {
