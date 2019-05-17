@@ -44,6 +44,9 @@ func main() {
 		updateCmd()
 	case "info":
 		infoCmd()
+	default:
+		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", flag.Arg(0))
+		os.Exit(1)
 	}
 }
 
