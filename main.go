@@ -150,6 +150,9 @@ func update(branch Branch) {
 	)
 
 	fmt.Println()
+	fmt.Printf("%s", aurora.Green("✅ Success\n"))
+
+	fmt.Println()
 
 	fmt.Printf(`To restore to the previous state, run:
   git checkout %s
