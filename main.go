@@ -21,7 +21,7 @@ func showHelp() {
   info
   info branch
   update
-  tree
+  list
 
   Optional arguments (before positional):
     --debug`)
@@ -46,8 +46,8 @@ func main() {
 		updateCmd()
 	case "info":
 		infoCmd()
-	case "tree":
-		treeCmd()
+	case "list":
+		listCmd()
 	default:
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", flag.Arg(0))
 		os.Exit(1)
@@ -236,13 +236,13 @@ func info(branch Branch) {
 	)
 }
 
-func treeCmd() {
+func listCmd() {
 	if flag.NArg() < 1 || flag.NArg() > 1 {
 		showHelp()
 		os.Exit(1)
 	}
 
-	tree()
+	list()
 }
 
 func maybeNumCommitsAheadStr(branch Ref, comparison Ref) string {
@@ -291,7 +291,7 @@ func ensureInTree(t treeprint.Tree, nodeMemo map[string]treeprint.Tree, branch B
 	return newNode
 }
 
-func tree() {
+func list() {
 	t := treeprint.New()
 	nodeMemo := map[string]treeprint.Tree{}
 	for _, branch := range bopgitBranches() {
