@@ -39,7 +39,7 @@ func newGitBranch(branchName string) gitBranch {
 }
 
 func hash(ref string) string {
-	return runGitCommand("show-ref", "-d", "-s", ref)
+	return runGitCommand("show-ref", "--heads", "-s", ref)
 }
 
 func currentBranch() gitBranch {
@@ -62,7 +62,7 @@ func branchMustContain(branch gitBranch, ref string) {
 }
 
 func rebaseOnto(newbase string, upstream string, root gitBranch) {
-	runGitCommand("rebase", "--into", newbase, upstream, root.name)
+	runGitCommand("rebase", "--onto", newbase, upstream, root.name)
 }
 
 func numCommitsAhead(branch string, comparison string) int {
