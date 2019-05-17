@@ -246,7 +246,7 @@ func treeCmd() {
 }
 
 func maybeNumCommitsAheadStr(branch Ref, comparison Ref) string {
-	ahead, err := maybeNumCommitsAhead(execOptions{timeout: 100 * time.Millisecond}, branch, comparison)
+	ahead, err := maybeNumCommitsAhead(execOptions{timeout: 200 * time.Millisecond}, branch, comparison)
 	aheadStr := strconv.Itoa(ahead)
 	if err != nil {
 		aheadStr = "???"
