@@ -8,7 +8,7 @@ import (
 )
 
 func hash(ref string) string {
-	return runGitCommand("show-ref", "--heads", "-s", ref)
+	return getGitValue("show-ref", "--heads", "-s", ref)
 }
 
 type Ref interface {

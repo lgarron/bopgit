@@ -10,7 +10,7 @@ import (
 )
 
 func currentBranch() Branch {
-	return NewBranch(runGitCommand("rev-parse", "--abbrev-ref", "HEAD"))
+	return NewBranch(getGitValue("rev-parse", "--abbrev-ref", "HEAD"))
 }
 
 func doesBranchContain(branch Branch, commit Commit) bool {
@@ -19,11 +19,10 @@ func doesBranchContain(branch Branch, commit Commit) bool {
 
 func branchMustContain(branch Branch, commit Commit) {
 	if !doesBranchContain(branch, commit) {
-		fmt.Errorf("Branch %s does not contain expected ref: %s",
+		fmt.Fprintf(os.Stderr, "Branch %s does not contain expected ref: %s\n",
 			aurora.Bold(branch),
 			aurora.Bold(commit),
 		)
-		showHelp()
 		os.Exit(1)
 	}
 }
@@ -33,7 +32,7 @@ func rebaseOnto(newbase Commit, upstream Commit, root Branch) {
 }
 
 func numCommitsAhead(branch Ref, comparison Ref) int {
-	s := runGitCommand("rev-list", "--left-only", "--count", fmt.Sprintf(
+	s := getGitValue("rev-list", "--left-only", "--count", fmt.Sprintf(
 		"%s...%s",
 		branch.ID(),
 		comparison.ID(),

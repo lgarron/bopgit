@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -24,12 +25,19 @@ func gitExecCommand(args ...string) *exec.Cmd {
 	return exec.Command("git", args...)
 }
 
-func runGitCommand(args ...string) string {
+func getGitValue(args ...string) string {
 	output, err := gitExecCommand(args...).Output()
 	if err != nil {
 		log.Fatal(err)
 	}
 	return strings.TrimSuffix(string(output), "\n")
+}
+
+func runGitCommand(args ...string) {
+	cmd := gitExecCommand(args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Run()
 }
 
 func isGitCommandExitCodeZero(args ...string) bool {
