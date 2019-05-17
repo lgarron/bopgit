@@ -11,9 +11,10 @@ var debug = false
 
 func showHelp() {
 	fmt.Println(`Usage:
-  set [optional arguments] baseRef
-  set [optional arguments] branch baseRef
-  set [optional arguments] branch baseRef latest-base-commit
+  set [optional arguments] base
+  set [optional arguments] base latest-base-commit
+  set [optional arguments] base latest-base-commit branch
+  update [optional arguments]
   update [optional arguments] branch
 
   Optional arguments:
@@ -39,71 +40,77 @@ func main() {
 	case "set":
 		setCmd()
 	case "update":
-		setCmd()
+		updateCmd()
 	}
 }
 
 func setCmd() {
-	if flag.NArg() == 2 {
-		set(currentBranch(), flag.Arg(1), nil)
-	} else if flag.NArg() == 3 {
-		set(flag.Arg(1), flag.Arg(2), nil)
-	} else if flag.NArg() == 4 {
-		arg3 := flag.Arg(3)
-		set(flag.Arg(1), flag.Arg(2), &arg3)
-	} else {
+	if flag.NArg() < 2 || flag.NArg() > 4 {
 		showHelp()
 	}
-}
 
-func set(branch gitBranch, baseBranch gitBranch, maybeLatestBaseCommit *string) {
-	branchMustExist(branch)
+	baseBranch := currentBranch()
 	branchMustExist(baseBranch)
+
+	var branch gitBranch
+	if flag.NArg() > 3 {
+		branch = flag.Arg(3)
+	} else {
+		branch = currentBranch()
+	}
+	branchMustExist(branch)
 
 	fmt.Printf("Setting the base branch for %s to %s\n",
 		aurora.Bold(branch),
 		aurora.Bold(baseBranch),
 	)
 
-	setSymBase(branch, baseBranch, "bopgit set")
-
 	var latestBaseCommit string
-	if maybeLatestBaseCommit == nil {
+	if flag.NArg() > 2 {
+		latestBaseCommit = flag.Arg(2)
+		fmt.Printf("Using the latest base commit provided: %s\n",
+			aurora.Bold(latestBaseCommit),
+		)
+	} else {
 		latestBaseCommit = hash(baseBranch)
 		fmt.Printf("Calculated latest base commit: %s\n",
 			aurora.Bold(latestBaseCommit),
 		)
-	} else {
-		latestBaseCommit = *maybeLatestBaseCommit
-		fmt.Printf("Using the latest base commit provided: %s\n",
-			aurora.Bold(latestBaseCommit),
-		)
 	}
+
 	branchMustContain(branch, latestBaseCommit)
+	set(baseBranch, latestBaseCommit, branch)
+}
+
+func set(baseBranch gitBranch, latestBaseCommit string, branch gitBranch) {
+	setSymBase(branch, baseBranch, "bopgit set")
 	setLatestBaseCommit(branch, latestBaseCommit, "bopgit set")
 }
 
 func updateCmd() {
-	if flag.NArg() == 1 {
-		update(currentBranch())
-	} else if flag.NArg() == 2 {
-		update(flag.Arg(1))
-	} else {
+	if flag.NArg() < 2 || flag.NArg() > 3 {
 		showHelp()
 	}
-}
 
-func update(branch gitBranch) {
+	var branch gitBranch
+	if flag.NArg() > 2 {
+		branch = flag.Arg(2)
+	} else {
+		branch = currentBranch()
+	}
 	branchMustExist(branch)
 
 	fmt.Printf("Updating branch %s\n",
 		aurora.Bold(branch),
 	)
 
+	update(branch)
+}
+
+func update(branch gitBranch) {
 	baseBranch := getSymBase(branch)
 	newLatestBaseCommit := hash(baseBranch)
 	oldLatestBaseCommit := getLatestBaseCommit(branch)
-	runGitCommand("rebase", "--into", newLatestBaseCommit, oldLatestBaseCommit, branch)
-
+	rebaseOnto(newLatestBaseCommit, oldLatestBaseCommit, branch)
 	setLatestBaseCommit(branch, newLatestBaseCommit, "bopgit update")
 }

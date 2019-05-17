@@ -45,3 +45,7 @@ func branchMustContain(branch gitBranch, ref string) {
 		os.Exit(1)
 	}
 }
+
+func rebaseOnto(newbase string, upstream string, root gitBranch) {
+	runGitCommand("rebase", "--into", newbase, upstream, root)
+}
