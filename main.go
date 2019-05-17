@@ -12,6 +12,7 @@ import (
 )
 
 var debug = false
+var showDistancesInTree = true
 
 func showHelp() {
 	fmt.Println(`Usage:
@@ -267,11 +268,16 @@ func ensureInTree(t treeprint.Tree, nodeMemo map[string]treeprint.Tree, branch B
 	}
 	parentNode := ensureInTree(t, nodeMemo, baseBranch)
 
-	metaText := fmt.Sprintf("-%s, +%s",
-		maybeNumCommitsAheadStr(baseBranch, branch),
-		maybeNumCommitsAheadStr(branch, baseBranch),
-	)
-	newNode := parentNode.AddMetaBranch(metaText, branch.Name)
+	var newNode treeprint.Tree
+	if showDistancesInTree {
+		metaText := fmt.Sprintf("-%s, +%s",
+			maybeNumCommitsAheadStr(baseBranch, branch),
+			maybeNumCommitsAheadStr(branch, baseBranch),
+		)
+		newNode = parentNode.AddMetaBranch(metaText, branch.Name)
+	} else {
+		newNode = parentNode.AddBranch(branch.Name)
+	}
 	nodeMemo[branch.Name] = newNode
 	return newNode
 }
