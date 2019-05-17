@@ -7,22 +7,20 @@ import (
 	"github.com/logrusorgru/aurora"
 )
 
-type gitBranch = string
-
-func hash(ref string) string {
-	return runGitCommand("show-ref", "-d", "-s", ref)
+type gitBranch struct {
+	name string
 }
 
-func currentBranch() string {
-	return runGitCommand("rev-parse", "--abbrev-ref", "HEAD")
+func (b gitBranch) String() string {
+	return fmt.Sprintf("⌥ %s", b.name)
 }
 
-func doesBranchExist(branch gitBranch) bool {
-	return isGitCommandExitCodeZero("rev-parse", "--verify", branch)
+func doesBranchNameExist(branchName string) bool {
+	return isGitCommandExitCodeZero("rev-parse", "--verify", branchName)
 }
 
-func branchMustExist(branch gitBranch) {
-	if !doesBranchExist(branch) {
+func branchNameMustExist(branch string) {
+	if !doesBranchNameExist(branch) {
 		fmt.Printf("Branch does not exist: %s",
 			aurora.Bold(branch),
 		)
@@ -31,8 +29,23 @@ func branchMustExist(branch gitBranch) {
 	}
 }
 
+func newGitBranch(branchName string) gitBranch {
+	branchNameMustExist(branchName)
+	return gitBranch{
+		name: branchName,
+	}
+}
+
+func hash(ref string) string {
+	return runGitCommand("show-ref", "-d", "-s", ref)
+}
+
+func currentBranch() gitBranch {
+	return newGitBranch(runGitCommand("rev-parse", "--abbrev-ref", "HEAD"))
+}
+
 func doesBranchContain(branch gitBranch, ref string) bool {
-	return isGitCommandExitCodeZero("merge-base", "--is-ancestor", ref, branch)
+	return isGitCommandExitCodeZero("merge-base", "--is-ancestor", ref, branch.name)
 }
 
 func branchMustContain(branch gitBranch, ref string) {
@@ -47,5 +60,5 @@ func branchMustContain(branch gitBranch, ref string) {
 }
 
 func rebaseOnto(newbase string, upstream string, root gitBranch) {
-	runGitCommand("rebase", "--into", newbase, upstream, root)
+	runGitCommand("rebase", "--into", newbase, upstream, root.name)
 }

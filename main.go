@@ -52,16 +52,14 @@ func setCmd() {
 		os.Exit(1)
 	}
 
-	baseBranch := flag.Arg(1)
-	branchMustExist(baseBranch)
+	baseBranch := newGitBranch(flag.Arg(1))
 
 	var branch gitBranch
 	if flag.NArg() > 3 {
-		branch = flag.Arg(3)
+		branch = newGitBranch(flag.Arg(3))
 	} else {
 		branch = currentBranch()
 	}
-	branchMustExist(branch)
 
 	fmt.Printf("Setting the base branch for %s to %s\n",
 		aurora.Bold(branch),
@@ -75,7 +73,7 @@ func setCmd() {
 			aurora.Bold(latestBaseCommit),
 		)
 	} else {
-		latestBaseCommit = hash(baseBranch)
+		latestBaseCommit = hash(baseBranch.name)
 		fmt.Printf("Calculated latest base commit: %s\n",
 			aurora.Bold(latestBaseCommit),
 		)
@@ -98,11 +96,10 @@ func updateCmd() {
 
 	var branch gitBranch
 	if flag.NArg() > 1 {
-		branch = flag.Arg(1)
+		branch = newGitBranch(flag.Arg(1))
 	} else {
 		branch = currentBranch()
 	}
-	branchMustExist(branch)
 
 	fmt.Printf("Updating branch %s\n",
 		aurora.Bold(branch),
@@ -113,7 +110,7 @@ func updateCmd() {
 
 func update(branch gitBranch) {
 	baseBranch := getSymBase(branch)
-	newLatestBaseCommit := hash(baseBranch)
+	newLatestBaseCommit := hash(baseBranch.name)
 	oldLatestBaseCommit := getLatestBaseCommit(branch)
 	// TODO: Set backup ref.
 	rebaseOnto(newLatestBaseCommit, oldLatestBaseCommit, branch)
@@ -128,11 +125,10 @@ func infoCmd() {
 
 	var branch gitBranch
 	if flag.NArg() > 1 {
-		branch = flag.Arg(1)
+		branch = newGitBranch(flag.Arg(1))
 	} else {
 		branch = currentBranch()
 	}
-	branchMustExist(branch)
 
 	fmt.Printf("Info for branch %s\n",
 		aurora.Bold(branch),
@@ -148,7 +144,7 @@ func info(branch gitBranch) {
 		aurora.Bold(getSymBase(branch)),
 	)
 
-	fmt.Printf("Latest Base commit: %s\n",
+	fmt.Printf("Latest base commit: %s\n",
 		aurora.Bold(getLatestBaseCommit(branch)),
 	)
 }
