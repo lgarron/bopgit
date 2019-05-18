@@ -9,13 +9,29 @@ import (
 	"github.com/xlab/treeprint"
 )
 
-func maybeNumCommitsAheadStr(branch Ref, comparison Ref) string {
-	ahead, err := maybeNumCommitsAhead(execOptions{timeout: 100 * time.Millisecond}, branch, comparison)
-	aheadStr := strconv.Itoa(ahead)
+func maybeNumCommitsLeftAheadStr(left Ref, right Ref) string {
+	leftAhead, err := maybeNumCommitsLeftAhead(execOptions{timeout: 100 * time.Millisecond}, left, right)
+	aheadStr := strconv.Itoa(leftAhead)
 	if err != nil {
 		aheadStr = "???"
 	}
 	return aheadStr
+}
+
+func maybeNumCommitsDiffStr(left Ref, right Ref) (string, string) {
+	leftAhead, rightAhead, err := maybeNumCommitsDiff(execOptions{timeout: 100 * time.Millisecond}, left, right)
+	if err != nil {
+		return "???", "???"
+	}
+	return strconv.Itoa(leftAhead), strconv.Itoa(rightAhead)
+}
+
+func maybeNumCommitsDiffStrColored(left Ref, right Ref) string {
+	leftAhead, rightAhead := maybeNumCommitsDiffStr(left, right)
+	return fmt.Sprintf("%s/%s",
+		aurora.Sprintf(aurora.Red("+%s"), leftAhead),
+		aurora.Sprintf(aurora.Green("-%s"), rightAhead),
+	)
 }
 
 type branchInfo struct {
@@ -41,22 +57,20 @@ func getBranchInfo(branch Branch) branchInfo {
 			fmt.Sprintf("%s@{upstream}", branch.Name),
 		)
 		if err == nil {
-			suffix = fmt.Sprintf(" | local: %s/%s",
-				aurora.Sprintf(aurora.Red("+%s"), maybeNumCommitsAheadStr(upstream, branch)),
-				aurora.Sprintf(aurora.Green("-%s"), maybeNumCommitsAheadStr(branch, upstream)),
+			suffix = fmt.Sprintf(" | local: %s",
+				maybeNumCommitsDiffStrColored(upstream, branch),
 			)
 		}
 	}
 
 	commitPluralized := "commits"
-	commitsOnBranchStr := maybeNumCommitsAheadStr(branch, getLatestBaseCommit(branch))
+	commitsOnBranchStr := maybeNumCommitsLeftAheadStr(branch, getLatestBaseCommit(branch))
 	if commitsOnBranchStr == "1" {
 		commitPluralized = "commit"
 	}
 
-	info := fmt.Sprintf("%s/%s | %s | %s %s%s",
-		aurora.Sprintf(aurora.Red("-%s"), maybeNumCommitsAheadStr(baseBranch, branch)),
-		aurora.Sprintf(aurora.Green("+%s"), maybeNumCommitsAheadStr(branch, baseBranch)),
+	info := fmt.Sprintf("%s | %s | %s %s%s",
+		maybeNumCommitsDiffStrColored(baseBranch, branch),
 		aurora.Bold(branch.Name),
 		commitsOnBranchStr,
 		commitPluralized,

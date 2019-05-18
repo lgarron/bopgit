@@ -32,18 +32,18 @@ func status(branch Branch) {
 
 	// TODO: avoid assuming a linear history?
 	fmt.Printf("%d commits to %s since its base commit.\n",
-		numCommitsAhead(branch, latestBaseCommit),
+		numCommitsLeftAhead(branch, latestBaseCommit),
 		aurora.Bold(branch),
 	)
 
 	fmt.Printf("%d commits in %s that %s doesn't have.\n",
-		numCommitsAhead(branch, baseBranch),
+		numCommitsLeftAhead(branch, baseBranch),
 		aurora.Bold(branch),
 		aurora.Bold(baseBranch),
 	)
 
 	fmt.Printf("%d commits in %s that %s doesn't have.\n",
-		numCommitsAhead(baseBranch, branch),
+		numCommitsLeftAhead(baseBranch, branch),
 		aurora.Bold(baseBranch),
 		aurora.Bold(branch),
 	)

@@ -31,11 +31,11 @@ func rebaseOnto(newbase Commit, upstream Commit, root Branch) {
 	runGitCommand("rebase", "--onto", newbase.Hash, upstream.Hash, root.Name)
 }
 
-func maybeNumCommitsAhead(options execOptions, branch Ref, comparison Ref) (int, error) {
+func maybeNumCommitsLeftAhead(options execOptions, left Ref, right Ref) (int, error) {
 	s, err := maybeGetGitValue(options, "rev-list", "--left-only", "--count", fmt.Sprintf(
 		"%s...%s",
-		branch.ID(),
-		comparison.ID(),
+		left.ID(),
+		right.ID(),
 	))
 	if err != nil {
 		return 0, err
@@ -48,8 +48,31 @@ func maybeNumCommitsAhead(options execOptions, branch Ref, comparison Ref) (int,
 	return i, nil
 }
 
-func numCommitsAhead(branch Ref, comparison Ref) int {
-	i, err := maybeNumCommitsAhead(execOptions{}, branch, comparison)
+func maybeNumCommitsDiff(options execOptions, left Ref, right Ref) (int, int, error) {
+	s, err := maybeGetGitValue(options, "rev-list", "--left-right", "--count", fmt.Sprintf(
+		"%s...%s",
+		left.ID(),
+		right.ID(),
+	))
+	if err != nil {
+		return 0, 0, err
+	}
+	diff := strings.Fields(s)
+	leftAhead, err := strconv.Atoi(diff[0])
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	rightAhead, err := strconv.Atoi(diff[1])
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	return leftAhead, rightAhead, nil
+}
+
+func numCommitsLeftAhead(left Ref, right Ref) int {
+	i, err := maybeNumCommitsLeftAhead(execOptions{}, left, right)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
