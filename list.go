@@ -9,8 +9,10 @@ import (
 	"github.com/xlab/treeprint"
 )
 
+const shortTimeout = 200 * time.Millisecond
+
 func maybeNumCommitsLeftAheadStr(left, right Ref) string {
-	leftAhead, err := maybeNumCommitsLeftAhead(execOptions{timeout: 100 * time.Millisecond}, left, right)
+	leftAhead, err := maybeNumCommitsLeftAhead(execOptions{timeout: shortTimeout}, left, right)
 	aheadStr := strconv.Itoa(leftAhead)
 	if err != nil {
 		aheadStr = "???"
@@ -19,7 +21,7 @@ func maybeNumCommitsLeftAheadStr(left, right Ref) string {
 }
 
 func maybeNumCommitsDiffStr(left, right Ref) (string, string) {
-	leftAhead, rightAhead, err := maybeNumCommitsDiff(execOptions{timeout: 100 * time.Millisecond}, left, right)
+	leftAhead, rightAhead, err := maybeNumCommitsDiff(execOptions{timeout: shortTimeout}, left, right)
 	if err != nil {
 		return "???", "???"
 	}
