@@ -31,8 +31,8 @@ func maybeNumCommitsDiffStr(left, right Ref) (string, string) {
 func maybeNumCommitsDiffStrColored(left, right Ref) string {
 	leftAhead, rightAhead := maybeNumCommitsDiffStr(left, right)
 	return fmt.Sprintf("%s/%s",
-		aurora.Sprintf(aurora.Red("+%s"), leftAhead),
-		aurora.Sprintf(aurora.Green("-%s"), rightAhead),
+		aurora.Sprintf(aurora.Red("-%s"), leftAhead),
+		aurora.Sprintf(aurora.Green("+%s"), rightAhead),
 	)
 }
 
