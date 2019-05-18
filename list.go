@@ -28,11 +28,20 @@ func maybeNumCommitsDiffStr(left, right Ref) (string, string) {
 	return strconv.Itoa(leftAhead), strconv.Itoa(rightAhead)
 }
 
+func colorizeIfNotZeroStr(template string, val string, fn func(interface{}) aurora.Value) string {
+	uncolored := fmt.Sprintf(template, val)
+	if val == "0" {
+		return uncolored
+	}
+	return aurora.Sprintf(fn("%s"), uncolored)
+}
+
 func maybeNumCommitsDiffStrColored(left, right Ref) string {
 	leftAhead, rightAhead := maybeNumCommitsDiffStr(left, right)
+
 	return fmt.Sprintf("%s/%s",
-		aurora.Sprintf(aurora.Red("-%s"), leftAhead),
-		aurora.Sprintf(aurora.Green("+%s"), rightAhead),
+		colorizeIfNotZeroStr("-%s", leftAhead, aurora.Red),
+		colorizeIfNotZeroStr("+%s", rightAhead, aurora.Green),
 	)
 }
 
