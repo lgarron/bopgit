@@ -31,7 +31,7 @@ func rebaseOnto(newbase Commit, upstream Commit, root Branch) {
 	runGitCommand("rebase", "--onto", newbase.Hash, upstream.Hash, root.Name)
 }
 
-func maybeNumCommitsLeftAhead(options execOptions, left Ref, right Ref) (int, error) {
+func maybeNumCommitsLeftAhead(options execOptions, left, right Ref) (int, error) {
 	s, err := maybeGetGitValue(options, "rev-list", "--left-only", "--count", fmt.Sprintf(
 		"%s...%s",
 		left.ID(),
@@ -48,7 +48,7 @@ func maybeNumCommitsLeftAhead(options execOptions, left Ref, right Ref) (int, er
 	return i, nil
 }
 
-func maybeNumCommitsDiff(options execOptions, left Ref, right Ref) (int, int, error) {
+func maybeNumCommitsDiff(options execOptions, left, right Ref) (int, int, error) {
 	s, err := maybeGetGitValue(options, "rev-list", "--left-right", "--count", fmt.Sprintf(
 		"%s...%s",
 		left.ID(),
@@ -71,7 +71,7 @@ func maybeNumCommitsDiff(options execOptions, left Ref, right Ref) (int, int, er
 	return leftAhead, rightAhead, nil
 }
 
-func numCommitsLeftAhead(left Ref, right Ref) int {
+func numCommitsLeftAhead(left, right Ref) int {
 	i, err := maybeNumCommitsLeftAhead(execOptions{}, left, right)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)

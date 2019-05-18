@@ -9,7 +9,7 @@ import (
 	"github.com/xlab/treeprint"
 )
 
-func maybeNumCommitsLeftAheadStr(left Ref, right Ref) string {
+func maybeNumCommitsLeftAheadStr(left, right Ref) string {
 	leftAhead, err := maybeNumCommitsLeftAhead(execOptions{timeout: 100 * time.Millisecond}, left, right)
 	aheadStr := strconv.Itoa(leftAhead)
 	if err != nil {
@@ -18,7 +18,7 @@ func maybeNumCommitsLeftAheadStr(left Ref, right Ref) string {
 	return aheadStr
 }
 
-func maybeNumCommitsDiffStr(left Ref, right Ref) (string, string) {
+func maybeNumCommitsDiffStr(left, right Ref) (string, string) {
 	leftAhead, rightAhead, err := maybeNumCommitsDiff(execOptions{timeout: 100 * time.Millisecond}, left, right)
 	if err != nil {
 		return "???", "???"
@@ -26,12 +26,22 @@ func maybeNumCommitsDiffStr(left Ref, right Ref) (string, string) {
 	return strconv.Itoa(leftAhead), strconv.Itoa(rightAhead)
 }
 
-func maybeNumCommitsDiffStrColored(left Ref, right Ref) string {
+func maybeNumCommitsDiffStrColored(left, right Ref) string {
 	leftAhead, rightAhead := maybeNumCommitsDiffStr(left, right)
 	return fmt.Sprintf("%s/%s",
 		aurora.Sprintf(aurora.Red("+%s"), leftAhead),
 		aurora.Sprintf(aurora.Green("-%s"), rightAhead),
 	)
+}
+
+type diffFn func(left, right Ref) string
+
+func diffFuture(fn diffFn, left, right Ref) chan string {
+	c := make(chan string)
+	go func() {
+		c <- fn(left, right)
+	}()
+	return c
 }
 
 type branchInfo struct {
@@ -40,6 +50,7 @@ type branchInfo struct {
 	info       string
 }
 
+// TODO: Return semantic info rather than a summary string.
 func getBranchInfo(branch Branch) branchInfo {
 	baseBranch := getSymBase(branch)
 	if !showDistancesInTree {
@@ -50,31 +61,41 @@ func getBranchInfo(branch Branch) branchInfo {
 		}
 	}
 
-	suffix := ""
-	if showUpstreamDistances {
-		upstream, err := mabyeGetBranch(execOptions{},
-			"rev-parse", "--abbrev-ref",
-			fmt.Sprintf("%s@{upstream}", branch.Name),
-		)
-		if err == nil {
-			suffix = fmt.Sprintf(" | local: %s",
-				maybeNumCommitsDiffStrColored(upstream, branch),
+	suffix := make(chan string)
+	go func() {
+		if showUpstreamDistances {
+			upstream, err := mabyeGetBranch(execOptions{},
+				"rev-parse", "--abbrev-ref",
+				fmt.Sprintf("%s@{upstream}", branch.Name),
 			)
+			if err != nil {
+				suffix <- ""
+			} else {
+				diffUpstream := maybeNumCommitsDiffStrColored(upstream, branch)
+				suffix <- fmt.Sprintf(" | local: %s",
+					diffUpstream,
+				)
+			}
+		} else {
+			suffix <- ""
 		}
-	}
+	}()
+
+	diffLatestBaseCommit := diffFuture(maybeNumCommitsLeftAheadStr, branch, getLatestBaseCommit(branch))
+	diffBase := diffFuture(maybeNumCommitsDiffStrColored, baseBranch, branch)
 
 	commitPluralized := "commits"
-	commitsOnBranchStr := maybeNumCommitsLeftAheadStr(branch, getLatestBaseCommit(branch))
+	commitsOnBranchStr := <-diffLatestBaseCommit
 	if commitsOnBranchStr == "1" {
 		commitPluralized = "commit"
 	}
 
 	info := fmt.Sprintf("%s | %s | %s %s%s",
-		maybeNumCommitsDiffStrColored(baseBranch, branch),
+		<-diffBase,
 		aurora.Bold(branch.Name),
 		commitsOnBranchStr,
 		commitPluralized,
-		suffix,
+		<-suffix,
 	)
 
 	return branchInfo{
