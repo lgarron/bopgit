@@ -80,6 +80,15 @@ func numCommitsLeftAhead(left, right Ref) int {
 	return i
 }
 
+func numCommitsDiff(left, right Ref) (int, int) {
+	leftAhead, rightAhead, err := maybeNumCommitsDiff(execOptions{}, left, right)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	return leftAhead, rightAhead
+}
+
 func bopgitBranches() []Branch {
 	// TODO: Look up the `sym-base` refs instead?
 	// (Would probably require fixing https://github.com/lgarron/bopgit/issues/3)

@@ -36,15 +36,20 @@ func info(branch Branch) {
 		aurora.Bold(branch),
 	)
 
+	// TODO: Parallelize this with the comparison against the base commit.
+	leftAhead, rightAhead := numCommitsDiff(baseBranch, branch)
+
 	fmt.Printf("%d commits in %s that %s doesn't have.\n",
-		numCommitsLeftAhead(branch, baseBranch),
+		leftAhead,
 		aurora.Bold(branch),
 		aurora.Bold(baseBranch),
 	)
 
 	fmt.Printf("%d commits in %s that %s doesn't have.\n",
-		numCommitsLeftAhead(baseBranch, branch),
+		rightAhead,
 		aurora.Bold(baseBranch),
 		aurora.Bold(branch),
 	)
+
+	// TODO: Print commit distance against upstream.
 }
