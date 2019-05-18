@@ -7,7 +7,7 @@ import (
 	"github.com/logrusorgru/aurora"
 )
 
-func status(branch Branch) {
+func info(branch Branch) {
 	fmt.Println()
 	baseBranch, err := mabyeGetSymBase(branch)
 	if err != nil {

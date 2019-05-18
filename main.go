@@ -16,12 +16,16 @@ const globalMaxNArgs = 4
 
 func showHelp() {
 	fmt.Println(`Usage:
-  track base-branch [latest-base-commit]
-  status [branch]
+  track base-branch
+  track base-branch latest-base-commit
+  info
+  info branch
   update
   list
-  base-branch [branch]
-  latest-base-commit [branch]
+  base-branch
+  base-branch branch
+  latest-base-commit
+  latest-base-commit branch
 
   Optional arguments (before positional):
     --debug`)
@@ -57,12 +61,12 @@ func main() {
 		trackCmd()
 	case "update":
 		updateCmd()
-	case "status":
-		statusCmd()
+	case "info":
+		infoCmd()
 	case "list":
 		listCmd()
-	case "base-branch":
-		baseBranchCmd()
+	case "branch-base":
+		branchBaseCmd()
 	case "latest-base-commit":
 		latestBaseCommitCmd()
 	default:
@@ -122,7 +126,7 @@ func updateCmd() {
 	update(branch)
 }
 
-func statusCmd() {
+func infoCmd() {
 	mustHaveNArgsInRange(1, 2)
 
 	var branch = branchArg(1)
@@ -130,7 +134,7 @@ func statusCmd() {
 		aurora.Bold(branch),
 	)
 
-	status(branch)
+	info(branch)
 }
 
 func listCmd() {
@@ -138,7 +142,7 @@ func listCmd() {
 	list()
 }
 
-func baseBranchCmd() {
+func branchBaseCmd() {
 	mustHaveNArgsInRange(1, 2)
 
 	branch := branchArg(1)
