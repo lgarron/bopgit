@@ -24,7 +24,7 @@ func info(branch Branch) {
 	)
 
 	if !doesBranchContain(branch, latestBaseCommit) {
-		fmt.Fprintf(os.Stderr, "The branch doesn't contain that `bopgit` believes to be its latest base commit!")
+		fmt.Fprintf(os.Stderr, "The branch doesn't contain that `bopgit` believes to be its latest base commit!\n")
 		os.Exit(1)
 	}
 
