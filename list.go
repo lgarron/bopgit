@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/logrusorgru/aurora"
@@ -28,21 +29,22 @@ func maybeNumCommitsDiffStr(left, right Ref) (string, string) {
 	return strconv.Itoa(leftAhead), strconv.Itoa(rightAhead)
 }
 
-func colorizeIfNotZeroStr(template string, val string, fn func(interface{}) aurora.Value) string {
-	uncolored := fmt.Sprintf(template, val)
-	if val == "0" {
-		return uncolored
-	}
-	return aurora.Sprintf(fn("%s"), uncolored)
-}
-
 func maybeNumCommitsDiffStrColored(left, right Ref) string {
 	leftAhead, rightAhead := maybeNumCommitsDiffStr(left, right)
 
-	return fmt.Sprintf("%s/%s",
-		colorizeIfNotZeroStr("-%s", leftAhead, aurora.Red),
-		colorizeIfNotZeroStr("+%s", rightAhead, aurora.Green),
-	)
+	var dists []string
+	if leftAhead != "0" {
+		dists = append(dists, aurora.Sprintf(aurora.Red("-%s"), leftAhead))
+	}
+	if rightAhead != "0" {
+		dists = append(dists, aurora.Sprintf(aurora.Green("+%s"), rightAhead))
+	}
+
+	s := strings.Join(dists, "/")
+	if s == "" {
+		s = "="
+	}
+	return s
 }
 
 type diffFn func(left, right Ref) string
