@@ -42,7 +42,7 @@ func maybeNumCommitsDiffStrColored(left, right Ref) string {
 
 	s := strings.Join(dists, "/")
 	if s == "" {
-		s = "="
+		s = "0"
 	}
 	return s
 }
