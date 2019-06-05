@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	runtimeDebug "runtime/debug"
 
 	"github.com/logrusorgru/aurora"
 )
@@ -84,6 +85,7 @@ func branchNameMustExist(branchName string) {
 		fmt.Printf("Branch does not exist: %s\n",
 			aurora.Bold(branchName),
 		)
+		runtimeDebug.PrintStack()
 		showHelp()
 		os.Exit(1)
 	}

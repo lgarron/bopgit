@@ -18,6 +18,7 @@ func showHelp() {
 	fmt.Println(`Usage:
   track base-branch
   track base-branch latest-base-commit
+  forget
   info
   info branch
   update
@@ -59,6 +60,8 @@ func main() {
 		showHelp()
 	case "track":
 		trackCmd()
+	case "forget":
+		forgetCmd()
 	case "update":
 		updateCmd()
 	case "info":
@@ -112,6 +115,19 @@ func trackCmd() {
 
 	branchMustContain(branch, latestBaseCommit)
 	track(baseBranch, latestBaseCommit, branch)
+}
+
+func forgetCmd() {
+	mustHaveNArgsInRange(1, 1)
+
+	branch := currentBranch()
+
+	fmt.Printf("Forgetting branch %s\n",
+		aurora.Bold(branch),
+	)
+
+	// TODO; Update refs that refer to this one.
+	forget(branch)
 }
 
 func updateCmd() {

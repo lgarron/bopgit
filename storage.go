@@ -18,6 +18,14 @@ func setLatestBaseCommit(branch Branch, commit Commit, reason string) {
 	getGitValue("update-ref", "-m", reason, latestBaseCommitRefName(branch), commit.Hash)
 }
 
+func clearSymBase(branch Branch, reason string) {
+	getGitValue("symbolic-ref", "-m", reason, "-d", symBaseRefName(branch))
+}
+
+func clearLatestBaseCommit(branch Branch, reason string) {
+	getGitValue("update-ref", "-m", reason, "-d", latestBaseCommitRefName(branch))
+}
+
 func mabyeGetSymBase(branch Branch) (Branch, error) {
 	return mabyeGetBranch(execOptions{}, "symbolic-ref", symBaseRefName(branch))
 }
