@@ -19,6 +19,7 @@ func showHelp() {
   track base-branch
   track base-branch latest-base-commit
   forget
+  forget branch
   info
   info branch
   update
@@ -79,9 +80,9 @@ func main() {
 }
 
 // Defaults to current branch.
-func branchArg(idx int) Branch {
+func branchArg(idx int, mustExist bool) Branch {
 	if flag.NArg() > idx {
-		return NewBranch(flag.Arg(idx))
+		return NewBranchWithExistence(flag.Arg(idx), mustExist)
 	}
 
 	return currentBranch()
@@ -118,9 +119,9 @@ func trackCmd() {
 }
 
 func forgetCmd() {
-	mustHaveNArgsInRange(1, 1)
+	mustHaveNArgsInRange(1, 2)
 
-	branch := currentBranch()
+	branch := branchArg(1, false)
 
 	fmt.Printf("Forgetting branch %s\n",
 		aurora.Bold(branch),
@@ -145,7 +146,7 @@ func updateCmd() {
 func infoCmd() {
 	mustHaveNArgsInRange(1, 2)
 
-	var branch = branchArg(1)
+	var branch = branchArg(1, true)
 	fmt.Printf("ℹ️  Info for branch %s\n",
 		aurora.Bold(branch),
 	)
@@ -161,7 +162,7 @@ func listCmd() {
 func branchBaseCmd() {
 	mustHaveNArgsInRange(1, 2)
 
-	branch := branchArg(1)
+	branch := branchArg(1, false)
 
 	fmt.Printf("%s\n", getSymBase(branch).Name)
 }
@@ -169,7 +170,7 @@ func branchBaseCmd() {
 func latestBaseCommitCmd() {
 	mustHaveNArgsInRange(1, 2)
 
-	branch := branchArg(1)
+	branch := branchArg(1, false)
 
 	fmt.Printf("%s\n", getLatestBaseCommit(branch).Hash)
 }

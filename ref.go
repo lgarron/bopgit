@@ -91,11 +91,17 @@ func branchNameMustExist(branchName string) {
 	}
 }
 
-func NewBranch(branchName string) Branch {
-	branchNameMustExist(branchName)
+func NewBranchWithExistence(branchName string, mustExist bool) Branch {
+	if mustExist {
+		branchNameMustExist(branchName)
+	}
 	return Branch{
 		Name: branchName,
 	}
+}
+
+func NewBranch(branchName string) Branch {
+	return NewBranchWithExistence(branchName, true)
 }
 
 func (b Branch) Commit() Commit {
