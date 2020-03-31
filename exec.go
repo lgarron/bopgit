@@ -69,7 +69,7 @@ func mabyeGetBranch(options execOptions, args ...string) (Branch, error) {
 func getGitValue(args ...string) string {
 	output, err := maybeGetGitValue(execOptions{}, args...)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintln(os.Stderr, fmt.Sprintf("Getting git value (%v) failed: %v", args, err))
 		os.Exit(1)
 	}
 
