@@ -93,6 +93,9 @@ func bopgitBranches() []Branch {
 	// TODO: Look up the `sym-base` refs instead?
 	// (Would probably require fixing https://github.com/lgarron/bopgit/issues/3)
 	branchesStr := getGitValue("for-each-ref", "--format=%(refname:short)", "refs/bopgit/latest-base-commit")
+	if len(branchesStr) == 0 {
+		return []Branch{}
+	}
 	branchRefs := strings.Split(branchesStr, "\n")
 
 	branches := []Branch{}

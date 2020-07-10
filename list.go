@@ -184,6 +184,10 @@ func ensureInTree(t treeprint.Tree, nodeMemo map[string]treeprint.Tree, lookup b
 
 func list() {
 	branches := bopgitBranches()
+	if len(branches) == 0 {
+		fmt.Println("No tracked branches!")
+		return
+	}
 	branchInfoLookup := calculateBranchInfo(branches)
 
 	t := treeprint.New()
