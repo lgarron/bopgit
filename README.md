@@ -1,5 +1,14 @@
 # `bopgit`
 
+Obsolete. Use `jj` instead: https://jj-vcs.github.io/jj/latest/
+
+<br>
+<br>
+<br>
+Original README below:
+
+--------
+
 A fancy tracker for `git rebase --onto`.
 
 I tend to work with a lot of dependent branches, and I prefer rebasing (instead of merging) in order to keep the dependencies understandable. I like the idea of [`topgit`](https://github.com/mackyle/topgit), but it seems to require extra commits to track dependencies (which show up in code reviews for normal repos). So I made `bopgit`, which does the minimum amount that I need without changing normal `git` operations.
